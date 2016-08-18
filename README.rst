@@ -24,7 +24,7 @@ Create you Flask app and give it to ``elsa.cli()``:
 
     if __name__ == '__main__':
         from elsa import cli
-        cli(app)
+        cli(app, base_url='https://example.com')
 
 Then you can run your script like this:
 
