@@ -12,6 +12,10 @@ setup(
     license='MIT',
     url='https://github.com/hroncok/elsa',
     packages=[p for p in find_packages() if p != 'tests'],
+    install_requires=[
+        'click',
+        'Frozen-Flask',
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
