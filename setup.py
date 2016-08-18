@@ -15,6 +15,8 @@ setup(
     install_requires=[
         'click',
         'Frozen-Flask',
+        'ghp-import',
+        'sh',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
