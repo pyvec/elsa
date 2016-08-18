@@ -1,0 +1,13 @@
+*.py[cod]
+*.sw[po]
+
+# Packages
+*.egg
+*.egg-info
+.eggs
+dist
+build
+sdist
+
+# Testmon
+.testmondata
