@@ -1,5 +1,11 @@
+# Encoding: UTF-8
 #!/usr/bin/env python3
+import sys
+
 from setuptools import setup, find_packages
+
+if sys.version_info < (3, 0):
+    raise RuntimeError('Elsa needs Python 3 or greater')
 
 setup(
     name='elsa',
