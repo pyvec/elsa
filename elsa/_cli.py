@@ -17,10 +17,19 @@ def freeze_app(app, freezer, path, base_url):
     freezer.freeze()
 
 
+def inject_cname(app):
+    """Create CNAME route for GitHub pages"""
+    @app.route('/CNAME')
+    def cname():
+        return app.config['SERVER_NAME']
+
+
 def cli(app, *, freezer=None, base_url=None):
     """Get a cli() function for provided app"""
     if not freezer:
         freezer = Freezer(app)
+
+    inject_cname(app)
 
     @click.group(context_settings=dict(help_option_names=['-h', '--help']),
                  help=__doc__)
