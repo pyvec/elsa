@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='elsa',
-    version='0.1.dev1',
+    version='0.1.dev2',
     description='Helper module for Frozen-Flask based websites',
     long_description=''.join(open('README.rst').readlines()),
     keywords='flask web github',
