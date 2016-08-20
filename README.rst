@@ -5,7 +5,7 @@ Elsa will help you build your `Frozen-Flask <http://pythonhosted.org/Frozen-Flas
 It's based on scripts from `PyLadies.cz repo <https://github.com/PyLadiesCZ/pyladies.cz>`_ and is distributed under the terms of the MIT license, see LICENSE (does not apply for the image below). It requires Python 3.
 
 .. figure:: http://cartoonbros.com/wp-content/uploads/2015/11/Elsa-21.jpg
-   :alt: elsa
+   :alt: Elsa
 
    Image linked from `cartoonbros.com <http://cartoonbros.com/elsa/>`_, not stored in the repo, so the repo remains free.
 
@@ -26,18 +26,24 @@ Create you Flask app and give it to ``elsa.cli()``:
         from elsa import cli
         cli(app, base_url='https://example.com')
 
-Then you can run your script like this:
+This will add command line interface to the script, enabling you to use it like this:
 
 .. code-block:: bash
 
-    python foo.py serve  # serves the site, no freezing
-    python foo.py freeze  # freeze the site, i.e. make a HTML snapshot
-    python foo.py deploy  # deploy the frozen site to GitHub pages
+    python foo.py serve  # serves the site, no freezing, so you can check it quickly
+    python foo.py freeze  # freezes the site, i.e. makes a HTML snapshot
+    python foo.py deploy  # deploys the frozen site to GitHub pages
 
 See more options with ``--help``.
 
 Travis CI based deployment
 --------------------------
+
+Travis CI is (in this context) a tool, that allows you to deploy the site automatically to GitHub pages after every push.
+All you have to do is tell Travis to run Elsa and provide a GitHub token.
+Elsa on Travis will freeze the site and deploy it frozen to GitHub pages.
+Elsa knows it's being run on Travis and will use the provided GitHub token to gain push permissions.
+Elsa will push force to ``gh-pages`` branch in a single commit rewriting the history and all manual changes of that branch.
 
 Here is an example ``.travis.yml`` file for automatic deployment. It assumes elsa and other requirements are in ``requirements.txt`` and that you are familiar with Travis CI (so it's not very verbose):
 
