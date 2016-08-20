@@ -1,1 +1,3 @@
-from ._cli import cli  # noqa
+from ._cli import cli
+
+__all__ = ['cli']
