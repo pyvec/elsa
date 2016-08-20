@@ -63,3 +63,13 @@ Here is an example ``.travis.yml`` file for automatic deployment. It assumes els
         on:
             branch: master
             repo: only/yours
+
+Further notes
+-------------
+
+URLs
+~~~~
+
+When you use URLs without trailing slash (e.g. ``https://example.com/foobar``), GitHub pages will serve the pages with bad Content-Type header
+(``application/octet-stream`` instead of ``text/html``) and the browser will attempt to download it.
+Make sure to use URLs with trailing slash (e.g. ``https://example.com/foobar/``) instead, so Frozen-Flask will create ``index.html`` in a folder and GitHub pages will use proper content type.
