@@ -10,7 +10,7 @@ setup(
     author='Miro Hrončok',
     author_email='miro@hroncok.cz',
     license='MIT',
-    url='https://github.com/hroncok/elsa',
+    url='https://github.com/pyvec/elsa',
     packages=[p for p in find_packages() if p != 'tests'],
     install_requires=[
         'click',
