@@ -30,6 +30,7 @@ def cli(app, *, freezer=None, base_url=None):
         freezer = Freezer(app)
 
     inject_cname(app)
+    app.config.setdefault('TEMPLATES_AUTO_RELOAD', True)
 
     @click.group(context_settings=dict(help_option_names=['-h', '--help']),
                  help=__doc__)
