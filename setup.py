@@ -20,6 +20,7 @@ setup(
     packages=[p for p in find_packages() if p != 'tests'],
     install_requires=[
         'click',
+        'Flask',
         'Frozen-Flask',
         'ghp-import',
         'sh',

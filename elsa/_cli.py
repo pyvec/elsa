@@ -2,6 +2,7 @@ import os
 import urllib.parse
 
 from flask_frozen import Freezer
+from flask import Response
 import click
 
 from ._deployment import deploy as deploy_
@@ -21,7 +22,8 @@ def inject_cname(app):
     """Create CNAME route for GitHub pages"""
     @app.route('/CNAME')
     def cname():
-        return app.config['SERVER_NAME']
+        return Response(app.config['SERVER_NAME'],
+                        mimetype='application/octet-stream')
 
 
 def cli(app, *, freezer=None, base_url=None):
