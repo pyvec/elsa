@@ -32,7 +32,6 @@ def cli(app, *, freezer=None, base_url=None):
         freezer = Freezer(app)
 
     inject_cname(app)
-    app.config.setdefault('TEMPLATES_AUTO_RELOAD', True)
 
     @click.group(context_settings=dict(help_option_names=['-h', '--help']),
                  help=__doc__)
@@ -44,6 +43,12 @@ def cli(app, *, freezer=None, base_url=None):
                   help='Port to listen at')
     def serve(port):
         """Run a debug server"""
+
+        # Workaround for https://github.com/pallets/flask/issues/1907
+        auto_reload = app.config.get('TEMPLATES_AUTO_RELOAD')
+        if auto_reload or auto_reload is None:
+            app.jinja_env.auto_reload = True
+
         app.run(host='0.0.0.0', port=port, debug=True)
 
     @command.command()
