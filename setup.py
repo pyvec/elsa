@@ -9,7 +9,7 @@ if sys.version_info < (3, 0):
 
 setup(
     name='elsa',
-    version='0.1.dev3',
+    version='0.1.dev4',
     description='Helper module for Frozen-Flask based websites',
     long_description=''.join(open('README.rst').readlines()),
     keywords='flask web github',
