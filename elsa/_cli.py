@@ -31,8 +31,6 @@ def cli(app, *, freezer=None, base_url=None):
     if not freezer:
         freezer = Freezer(app)
 
-    inject_cname(app)
-
     @click.group(context_settings=dict(help_option_names=['-h', '--help']),
                  help=__doc__)
     def command():
@@ -41,13 +39,19 @@ def cli(app, *, freezer=None, base_url=None):
     @command.command()
     @click.option('--port', type=int, default=8003,
                   help='Port to listen at')
-    def serve(port):
+    @click.option('--cname/--no-cname', default=True,
+                  help='Whether to serve the CNAME file, '
+                  'default is to serve it')
+    def serve(port, cname):
         """Run a debug server"""
 
         # Workaround for https://github.com/pallets/flask/issues/1907
         auto_reload = app.config.get('TEMPLATES_AUTO_RELOAD')
         if auto_reload or auto_reload is None:
             app.jinja_env.auto_reload = True
+
+        if cname:
+            inject_cname(app)
 
         app.run(host='0.0.0.0', port=port, debug=True)
 
@@ -61,9 +65,16 @@ def cli(app, *, freezer=None, base_url=None):
                   help='After building the site, run a server with it')
     @click.option('--port', default=8003,
                   help='Port used for --serve, default 8003')
-    def freeze(path, base_url, serve, port):
+    @click.option('--cname/--no-cname', default=True,
+                  help='Whether to create the CNAME file, '
+                  'default is to create it')
+    def freeze(path, base_url, serve, port, cname):
         """Build a static site"""
+        if cname:
+            inject_cname(app)
+
         freeze_app(app, freezer, path, base_url)
+
         if serve:
             freezer.serve(port=port)
 
@@ -80,10 +91,16 @@ def cli(app, *, freezer=None, base_url=None):
     @click.option('--freeze/--no-freeze', default=True,
                   help='Whether to freeze the site before deploying, '
                   'default is to freeze')
-    def deploy(path, base_url, push, freeze):
+    @click.option('--cname/--no-cname', default=True,
+                  help='Whether to create the CNAME file when freezing, '
+                  'default is to create it')
+    def deploy(path, base_url, push, freeze, cname):
         """Deploy the site to GitHub pages"""
         if freeze:
+            if cname:
+                inject_cname(app)
             freeze_app(app, freezer, path, base_url)
+
         deploy_(path, push=push)
 
     return command()
