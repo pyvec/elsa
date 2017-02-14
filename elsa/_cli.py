@@ -8,6 +8,24 @@ import click
 from ._deployment import deploy as deploy_
 
 
+def port_option():
+    return click.option(
+        '--port', type=int, default=8003,
+        help='Port to listen at')
+
+
+def cname_option():
+    return click.option(
+        '--cname/--no-cname', default=True,
+        help='Whether to create the CNAME file, default is to create it')
+
+
+def path_option(app):
+    return click.option(
+        '--path', default=os.path.join(app.root_path, '_build'),
+        help='Input path, default _build')
+
+
 def freeze_app(app, freezer, path, base_url):
     if not base_url:
         raise click.UsageError('No base URL provided, use --base-url')
@@ -37,11 +55,8 @@ def cli(app, *, freezer=None, base_url=None):
         pass
 
     @command.command()
-    @click.option('--port', type=int, default=8003,
-                  help='Port to listen at')
-    @click.option('--cname/--no-cname', default=True,
-                  help='Whether to serve the CNAME file, '
-                  'default is to serve it')
+    @port_option()
+    @cname_option()
     def serve(port, cname):
         """Run a debug server"""
 
@@ -56,18 +71,14 @@ def cli(app, *, freezer=None, base_url=None):
         app.run(host='0.0.0.0', port=port, debug=True)
 
     @command.command()
-    @click.option('--path', default=os.path.join(app.root_path, '_build'),
-                  help='Output path, default _build')
+    @path_option(app)
     @click.option('--base-url', default=base_url,
                   help='URL for the application, used for external links, ' +
                   ('default {}'.format(base_url) if base_url else 'mandatory'))
     @click.option('--serve/--no-serve',
                   help='After building the site, run a server with it')
-    @click.option('--port', default=8003,
-                  help='Port used for --serve, default 8003')
-    @click.option('--cname/--no-cname', default=True,
-                  help='Whether to create the CNAME file, '
-                  'default is to create it')
+    @port_option()
+    @cname_option()
     def freeze(path, base_url, serve, port, cname):
         """Build a static site"""
         if cname:
@@ -79,8 +90,7 @@ def cli(app, *, freezer=None, base_url=None):
             freezer.serve(port=port)
 
     @command.command()
-    @click.option('--path', default=os.path.join(app.root_path, '_build'),
-                  help='Input path, default _build')
+    @path_option(app)
     @click.option('--base-url', default=base_url,
                   help='URL for the application, used for external links, ' +
                   ('default {}'.format(base_url) if base_url else 'mandatory'
@@ -91,9 +101,7 @@ def cli(app, *, freezer=None, base_url=None):
     @click.option('--freeze/--no-freeze', default=True,
                   help='Whether to freeze the site before deploying, '
                   'default is to freeze')
-    @click.option('--cname/--no-cname', default=True,
-                  help='Whether to create the CNAME file when freezing, '
-                  'default is to create it')
+    @cname_option()
     def deploy(path, base_url, push, freeze, cname):
         """Deploy the site to GitHub pages"""
         if freeze:
