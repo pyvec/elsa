@@ -64,6 +64,20 @@ Here is an example ``.travis.yml`` file for automatic deployment. It assumes els
             branch: master
             repo: only/yours
 
+Testing
+-------
+
+To run the test suite, create and activate a `virtual environment
+<https://docs.python.org/3/library/venv.html>`_ and run::
+
+    python setup.py install  # or develop
+    python setup.py test
+
+Elsa uses pytest, so if you are familiar with it, feel free to run  it directly
+or add options via ``--addopts`` argument of the ``test`` command.
+
+
+
 Further notes
 -------------
 
