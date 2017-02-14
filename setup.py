@@ -25,6 +25,8 @@ setup(
         'ghp-import',
         'sh',
     ],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest>=3', 'requests'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
