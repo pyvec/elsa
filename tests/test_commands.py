@@ -12,10 +12,16 @@ import sh
 
 
 FIXTURES = 'tests/fixtures'
-WEBSITE = os.path.join(FIXTURES, 'website.py')
-BUILDDIR = os.path.join(FIXTURES, '_build')
+
+SCRIPT = 'website.py'
+BUILDDIR = '_build'
 INDEX = os.path.join(BUILDDIR, 'index.html')
 CNAME = os.path.join(BUILDDIR, 'CNAME')
+
+SCRIPT_FIXTURES = os.path.join(FIXTURES, SCRIPT)
+BUILDDIR_FIXTURES = os.path.join(FIXTURES, BUILDDIR)
+INDEX_FIXTURES = os.path.join(FIXTURES, INDEX)
+CNAME_FIXTURES = os.path.join(FIXTURES, CNAME)
 
 
 def parametrized_fixture(*args, **kwargs):
@@ -45,6 +51,9 @@ protocol = parametrized_fixture('http', 'https')
 class ElsaRunner:
     '''
     Class for elsa fixture enabling blocking or background runs
+
+    If there is a local website.py in pwd, uses that one,
+    uses the one from fixtures instead.
     '''
     def run(self, *command):
         print('COMMAND: python website.py', *command)
@@ -62,26 +71,22 @@ class ElsaRunner:
                 proc.returncode == 0)
 
     def finalize(self):
-        self.lax_rmtree(BUILDDIR)
-        self.lax_rmbranch('gh-pages')
+        self.lax_rmtree(BUILDDIR_FIXTURES)
 
     @classmethod
     def create_command(cls, command):
+        if os.path.exists(SCRIPT):
+            script = SCRIPT
+        else:
+            script = SCRIPT_FIXTURES
         command = tuple(str(item) for item in command)
-        return (sys.executable, WEBSITE) + command
+        return (sys.executable, script) + command
 
     @classmethod
     def lax_rmtree(cls, path):
         try:
             shutil.rmtree(path)
         except FileNotFoundError:
-            pass
-
-    @classmethod
-    def lax_rmbranch(cls, branch):
-        try:
-            sh.git.branch('-D', branch)
-        except sh.ErrorReturnCode_1:
             pass
 
 
@@ -98,6 +103,28 @@ def commit_info():
     commit = str(sh.git.show('gh-pages', '--no-color', '--name-only'))
     print(commit)
     return commit
+
+
+def assert_commit_author(commit):
+    assert 'Author: Tester Example <tester@example.org>' in commit
+
+
+@pytest.fixture
+def gitrepo(tmpdir):
+    '''
+    This fixture creates a git repository with website.py in tmpdir
+    '''
+    repo = tmpdir.mkdir('repo')
+    script = repo.join(SCRIPT)
+    with open(SCRIPT_FIXTURES) as f:
+        script.write(f.read())
+    with repo.as_cwd():
+        sh.git.init()
+        sh.git.add(SCRIPT)
+        sh.git.config('user.email', 'tester@example.org')
+        sh.git.config('user.name', 'Tester Example')
+        sh.git.commit('-m', 'Initial commit')
+        yield repo
 
 
 def test_serve(elsa):
@@ -120,30 +147,30 @@ def test_cname(elsa, cname, serve_command):
 
 def test_freeze(elsa):
     elsa.run('freeze')
-    with open(INDEX) as f:
+    with open(INDEX_FIXTURES) as f:
         assert 'SUCCESS' in f.read()
 
 
 def test_freeze_cname(elsa):
     elsa.run('freeze')
-    with open(CNAME) as f:
+    with open(CNAME_FIXTURES) as f:
         assert f.read().strip() == 'example.org'
 
 
 def test_freeze_no_cname(elsa):
     elsa.run('freeze', '--no-cname')
-    assert not os.path.exists(CNAME)
+    assert not os.path.exists(CNAME_FIXTURES)
 
 
 def test_freeze_base_url(elsa, protocol, domain):
     url = '{}://{}'.format(protocol, domain)
     elsa.run('freeze', '--base-url', url)
-    with open(CNAME) as f:
+    with open(CNAME_FIXTURES) as f:
         assert f.read().strip() == domain
 
 
 def test_freeze_serve(elsa):
-    with elsa.run_bg('freeze', '--serve'), open(INDEX) as f:
+    with elsa.run_bg('freeze', '--serve'), open(INDEX_FIXTURES) as f:
         assert 'SUCCESS' in f.read()
         assert 'SUCCESS' in requests.get('http://localhost:8003/').text
 
@@ -157,24 +184,25 @@ def test_freeze_path(elsa, tmpdir, cname):
     assert is_cname(cname) == path.join('CNAME').check()
 
 
-def test_deploy_no_push_files(elsa, cname):
+def test_deploy_no_push_files(elsa, cname, gitrepo):
     elsa.run('deploy', '--no-push', cname)
     with open(INDEX) as f:
         assert 'SUCCESS' in f.read()
         assert is_cname(cname) == os.path.exists(CNAME)
 
 
-def test_deploy_no_push_git(elsa, cname):
+def test_deploy_no_push_git(elsa, cname, gitrepo):
     elsa.run('deploy', '--no-push', cname)
     commit = commit_info()
 
     assert '.nojekyll' in commit
     assert 'index.html' in commit
     assert is_cname(cname) == ('CNAME' in commit)
+    assert_commit_author(commit)
 
 
 @pytest.mark.parametrize('path', ('custom_path', 'default_path'))
-def test_freeze_and_deploy(elsa, tmpdir, path):
+def test_freeze_and_deploy(elsa, tmpdir, path, gitrepo):
     freeze_command = ['freeze']
     deploy_command = ['deploy', '--no-push']
     if path == 'custom_path':
@@ -188,3 +216,4 @@ def test_freeze_and_deploy(elsa, tmpdir, path):
 
     commit = commit_info()
     assert 'index.html' in commit
+    assert_commit_author(commit)
