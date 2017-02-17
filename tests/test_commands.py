@@ -1,9 +1,9 @@
-from contextlib import contextmanager
 import os
-import signal
 import shutil
+import signal
 import subprocess
 import sys
+from contextlib import contextmanager
 
 import pytest
 import requests
