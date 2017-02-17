@@ -4,7 +4,6 @@ import signal
 import shutil
 import subprocess
 import sys
-import time
 
 import pytest
 import requests
@@ -62,13 +61,30 @@ class ElsaRunner:
     @contextmanager
     def run_bg(self, *command):
         print('COMMAND IN BACKGROUND: python website.py', *command)
-        proc = subprocess.Popen(self.create_command(command))
-        time.sleep(1)  # TODO actually check if ready instead
+        proc = subprocess.Popen(self.create_command(command),
+                                stderr=subprocess.PIPE,
+                                universal_newlines=True)
+
+        # Wait for the server to start,
+        # i.e. wait for the first line on stderr:
+        #  * Running on http://127.0.0.1:8003/ (Press CTRL+C to quit)
+        sys.stderr.write(proc.stderr.readline())
+        # With the serve command, Flask is running in debug and restarts
+        # the server, so we'll also wait for next line:
+        #  * Restarting with stat
+        if command[0] == 'serve':
+            sys.stderr.write(proc.stderr.readline())
+
         yield proc
-        proc.terminate()
-        proc.wait()
-        assert (proc.returncode == -signal.SIGTERM or
-                proc.returncode == 0)
+
+        os.kill(proc.pid, signal.SIGINT)  # Ctrl+C
+        try:
+            _, errs = proc.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            _, errs = proc.communicate()
+        sys.stderr.write(errs)
+        assert proc.returncode == 0
 
     def finalize(self):
         self.lax_rmtree(BUILDDIR_FIXTURES)
