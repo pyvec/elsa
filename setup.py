@@ -1,5 +1,5 @@
-# Encoding: UTF-8
 #!/usr/bin/env python3
+# Encoding: UTF-8
 import sys
 
 from setuptools import setup, find_packages
@@ -26,7 +26,7 @@ setup(
         'sh',
     ],
     setup_requires=['pytest-runner'],
-    tests_require=['pytest>=3', 'requests'],
+    tests_require=['pytest>=3', 'requests', 'pytest-flake8'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -41,5 +41,5 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Topic :: Internet :: WWW/HTTP',
-        ]
+    ]
 )
