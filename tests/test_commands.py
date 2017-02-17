@@ -31,11 +31,12 @@ def is_cname(option: str) -> bool:
     '''
     Whether the given command line option means the CNAME should be generated
     '''
-    return option == ' --cname'
+    return option == '--cname'
 
 
-cname = parametrized_fixture(cname=' --cname', no_cname=' --no-cname')
-serve_command = parametrized_fixture('serve', freeze_serve='freeze --serve')
+cname = parametrized_fixture(cname='--cname', no_cname='--no-cname')
+serve_command = parametrized_fixture(serve=['serve'],
+                                     freeze_serve=['freeze', '--serve'])
 port = parametrized_fixture(8001, 8080)
 domain = parametrized_fixture('foo.bar', 'spam.eggs')
 protocol = parametrized_fixture('http', 'https')
@@ -45,14 +46,14 @@ class ElsaRunner:
     '''
     Class for elsa fixture enabling blocking or background runs
     '''
-    def run(self, command):
-        print('COMMAND: python website.py', command)
-        subprocess.run([sys.executable, WEBSITE] + command.split())
+    def run(self, *command):
+        print('COMMAND: python website.py', *command)
+        subprocess.run(self.create_command(command))
 
     @contextmanager
-    def run_bg(self, command):
-        print('COMMAND IN BACKGROUND: python website.py', command)
-        proc = subprocess.Popen([sys.executable, WEBSITE] + command.split())
+    def run_bg(self, *command):
+        print('COMMAND IN BACKGROUND: python website.py', *command)
+        proc = subprocess.Popen(self.create_command(command))
         time.sleep(1)  # TODO actually check if ready instead
         yield proc
         proc.terminate()
@@ -63,6 +64,11 @@ class ElsaRunner:
     def finalize(self):
         self.lax_rmtree(BUILDDIR)
         self.lax_rmbranch('gh-pages')
+
+    @classmethod
+    def create_command(cls, command):
+        command = tuple(str(item) for item in command)
+        return (sys.executable, WEBSITE) + command
 
     @classmethod
     def lax_rmtree(cls, path):
@@ -100,7 +106,7 @@ def test_serve(elsa):
 
 
 def test_port(elsa, port, serve_command):
-    with elsa.run_bg(serve_command + ' --port {}'.format(port)):
+    with elsa.run_bg(*serve_command, '--port', port):
         url = 'http://localhost:{}/'.format(port)
         assert 'SUCCESS' in requests.get(url).text
 
@@ -108,7 +114,7 @@ def test_port(elsa, port, serve_command):
 def test_cname(elsa, cname, serve_command):
     code = 200 if is_cname(cname) else 404
 
-    with elsa.run_bg(serve_command + cname):
+    with elsa.run_bg(*serve_command, cname):
         assert requests.get('http://localhost:8003/CNAME').status_code == code
 
 
@@ -125,25 +131,26 @@ def test_freeze_cname(elsa):
 
 
 def test_freeze_no_cname(elsa):
-    elsa.run('freeze --no-cname')
+    elsa.run('freeze', '--no-cname')
     assert not os.path.exists(CNAME)
 
 
 def test_freeze_base_url(elsa, protocol, domain):
-    elsa.run('freeze --base-url {}://{}'.format(protocol, domain))
+    url = '{}://{}'.format(protocol, domain)
+    elsa.run('freeze', '--base-url', url)
     with open(CNAME) as f:
         assert f.read().strip() == domain
 
 
 def test_freeze_serve(elsa):
-    with elsa.run_bg('freeze --serve'), open(INDEX) as f:
+    with elsa.run_bg('freeze', '--serve'), open(INDEX) as f:
         assert 'SUCCESS' in f.read()
         assert 'SUCCESS' in requests.get('http://localhost:8003/').text
 
 
 def test_freeze_path(elsa, tmpdir, cname):
     path = tmpdir.join('foo')
-    elsa.run('freeze --path {}{}'.format(path, cname))
+    elsa.run('freeze', '--path', path, cname)
 
     assert path.check(dir=True)
     assert path.join('index.html').check(file=True)
@@ -151,14 +158,14 @@ def test_freeze_path(elsa, tmpdir, cname):
 
 
 def test_deploy_no_push_files(elsa, cname):
-    elsa.run('deploy --no-push' + cname)
+    elsa.run('deploy', '--no-push', cname)
     with open(INDEX) as f:
         assert 'SUCCESS' in f.read()
         assert is_cname(cname) == os.path.exists(CNAME)
 
 
 def test_deploy_no_push_git(elsa, cname):
-    elsa.run('deploy --no-push' + cname)
+    elsa.run('deploy', '--no-push', cname)
     commit = commit_info()
 
     assert '.nojekyll' in commit
@@ -168,15 +175,16 @@ def test_deploy_no_push_git(elsa, cname):
 
 @pytest.mark.parametrize('path', ('custom_path', 'default_path'))
 def test_freeze_and_deploy(elsa, tmpdir, path):
-    args = ''
+    freeze_command = ['freeze']
+    deploy_command = ['deploy', '--no-push']
     if path == 'custom_path':
         path = tmpdir.join('foo')
-        args = ' --path {}'.format(path)
-    freeze_command = 'freeze' + args
-    deploy_command = 'deploy --no-push' + args
+        args = ['--path', path]
+        freeze_command += args
+        deploy_command += args
 
-    elsa.run(freeze_command)
-    elsa.run(deploy_command)
+    elsa.run(*freeze_command)
+    elsa.run(*deploy_command)
 
     commit = commit_info()
     assert 'index.html' in commit
