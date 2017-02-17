@@ -26,16 +26,14 @@ def parametrized_fixture(*args, **kwargs):
     return fixture
 
 
-class Cname(str):
+def is_cname(option: str) -> bool:
     '''
-    Helper class that is str, but has different truthfulness
+    Whether the given command line option means the CNAME should be generated
     '''
-    def __bool__(self):
-        return self == ' --cname'
+    return option == ' --cname'
 
 
-cname = parametrized_fixture(cname=Cname(' --cname'),
-                             no_cname=Cname(' --no-cname'))
+cname = parametrized_fixture(cname=' --cname', no_cname=' --no-cname')
 serve_command = parametrized_fixture('serve', freeze_serve='freeze --serve')
 port = parametrized_fixture(8001, 8080)
 domain = parametrized_fixture('foo.bar', 'spam.eggs')
@@ -111,7 +109,7 @@ def test_port(elsa, port, serve_command):
 
 
 def test_cname(elsa, cname, serve_command):
-    code = 200 if cname else 404
+    code = 200 if is_cname(cname) else 404
 
     elsa(serve_command + cname)
     assert requests.get('http://localhost:8003/CNAME').status_code == code
@@ -153,14 +151,14 @@ def test_freeze_path(elsa, tmpdir, cname):
 
     assert path.check(dir=True)
     assert path.join('index.html').check(file=True)
-    assert bool(cname) == path.join('CNAME').check()
+    assert is_cname(cname) == path.join('CNAME').check()
 
 
 def test_deploy_no_push_files(elsa, cname):
     elsa('deploy --no-push' + cname)
     with open(INDEX) as f:
         assert 'SUCCESS' in f.read()
-        assert bool(cname) == os.path.exists(CNAME)
+        assert is_cname(cname) == os.path.exists(CNAME)
 
 
 def test_deploy_no_push_git(elsa, cname):
@@ -169,7 +167,7 @@ def test_deploy_no_push_git(elsa, cname):
 
     assert '.nojekyll' in commit
     assert 'index.html' in commit
-    assert bool(cname) == ('CNAME' in commit)
+    assert is_cname(cname) == ('CNAME' in commit)
 
 
 @pytest.mark.parametrize('path', ('custom_path', 'default_path'))
