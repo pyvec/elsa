@@ -116,7 +116,7 @@ def elsa():
 
 
 def commit_info():
-    commit = str(sh.git.show('gh-pages', '--no-color', '--name-only'))
+    commit = str(sh.git('--no-pager', 'show', 'gh-pages', '--no-color'))
     print(commit)
     return commit
 
@@ -224,6 +224,7 @@ def test_deploy_no_push_git(elsa, cname, gitrepo):
 
     assert '.nojekyll' in commit
     assert 'index.html' in commit
+    assert 'SUCCESS' in commit
     assert is_cname(cname) == ('CNAME' in commit)
     assert_commit_author(commit)
 
@@ -242,5 +243,5 @@ def test_freeze_and_deploy(elsa, tmpdir, path, gitrepo):
     elsa.run(*deploy_command)
 
     commit = commit_info()
-    assert 'index.html' in commit
+    assert 'SUCCESS' in commit
     assert_commit_author(commit)
