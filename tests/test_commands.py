@@ -57,7 +57,7 @@ class ElsaRunner:
     '''
     def run(self, *command):
         print('COMMAND: python website.py', *command)
-        subprocess.run(self.create_command(command))
+        subprocess.run(self.create_command(command), check=True)
 
     @contextmanager
     def run_bg(self, *command):
@@ -66,7 +66,7 @@ class ElsaRunner:
         time.sleep(1)  # TODO actually check if ready instead
         yield proc
         proc.terminate()
-        proc.communicate()
+        proc.wait()
         assert (proc.returncode == -signal.SIGTERM or
                 proc.returncode == 0)
 
@@ -125,6 +125,17 @@ def gitrepo(tmpdir):
         sh.git.config('user.name', 'Tester Example')
         sh.git.commit('-m', 'Initial commit')
         yield repo
+
+
+@pytest.mark.xfail(strict=True)
+def test_elsa_fixture_bad_exit_status(elsa):
+    elsa.run('not', 'a', 'chance')
+
+
+@pytest.mark.xfail(strict=True)
+def test_elsa_fixture_bad_exit_status_bg(elsa):
+    with elsa.run_bg('not', 'a', 'chance'):
+        pass
 
 
 def test_serve(elsa):
