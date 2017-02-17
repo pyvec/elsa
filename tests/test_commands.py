@@ -199,7 +199,7 @@ def test_deploy_no_push_files(elsa, cname, gitrepo):
     elsa.run('deploy', '--no-push', cname)
     with open(INDEX) as f:
         assert 'SUCCESS' in f.read()
-        assert is_cname(cname) == os.path.exists(CNAME)
+    assert is_cname(cname) == os.path.exists(CNAME)
 
 
 def test_deploy_no_push_git(elsa, cname, gitrepo):
