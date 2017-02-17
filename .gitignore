@@ -11,3 +11,6 @@ sdist
 
 # Testmon
 .testmondata
+
+# Tox
+.tox

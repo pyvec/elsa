@@ -67,14 +67,11 @@ Here is an example ``.travis.yml`` file for automatic deployment. It assumes els
 Testing
 -------
 
-To run the test suite, create and activate a `virtual environment
-<https://docs.python.org/3/library/venv.html>`_ and run::
+To run the test suite, install `tox <http://tox.readthedocs.io/>`_ and run it::
 
-    python setup.py install  # or develop
-    python setup.py test
+    tox
 
-Elsa uses pytest, so if you are familiar with it, feel free to run  it directly
-or add options via ``--addopts`` argument of the ``test`` command.
+Elsa uses pytest, so if you are familiar with it, feel free to run  it directly.
 
 
 

@@ -2,9 +2,11 @@ language: python
 python:
 - '3.5'
 - '3.6'
-before_install:
-- pip install -U pip setuptools pytest
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION/lib/python$TRAVIS_PYTHON_VERSION/site-packages
+    - $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION/bin
 install:
-- python setup.py install
-script:
-- python setup.py test --addopts -v
+    - pip install --upgrade tox tox-travis
+script: tox
