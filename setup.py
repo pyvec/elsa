@@ -7,11 +7,21 @@ from setuptools import setup, find_packages
 if sys.version_info < (3, 0):
     raise RuntimeError('Elsa needs Python 3 or greater')
 
+
+def long_description():
+    with open('README.rst') as readme:
+        ld = readme.read()
+    ld += '\n\n'
+    with open('CHANGELOG.rst') as changelog:
+        ld += changelog.read()
+    return ld
+
+
 setup(
     name='elsa',
-    version='0.1.dev4',
+    version='0.1',
     description='Helper module for Frozen-Flask based websites',
-    long_description=''.join(open('README.rst').readlines()),
+    long_description=long_description(),
     keywords='flask web github',
     author='Miro Hrončok',
     author_email='miro@hroncok.cz',
