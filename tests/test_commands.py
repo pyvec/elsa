@@ -54,14 +54,14 @@ class ElsaRunner:
     If there is a local website.py in pwd, uses that one,
     uses the one from fixtures instead.
     '''
-    def run(self, *command):
+    def run(self, *command, script=None):
         print('COMMAND: python website.py', *command)
-        subprocess.run(self.create_command(command), check=True)
+        subprocess.run(self.create_command(command, script), check=True)
 
     @contextmanager
-    def run_bg(self, *command):
+    def run_bg(self, *command, script=None):
         print('COMMAND IN BACKGROUND: python website.py', *command)
-        proc = subprocess.Popen(self.create_command(command),
+        proc = subprocess.Popen(self.create_command(command, script),
                                 stderr=subprocess.PIPE,
                                 universal_newlines=True)
 
@@ -90,11 +90,12 @@ class ElsaRunner:
         self.lax_rmtree(BUILDDIR_FIXTURES)
 
     @classmethod
-    def create_command(cls, command):
-        if os.path.exists(SCRIPT):
-            script = SCRIPT
+    def create_command(cls, command, script):
+        script = script or SCRIPT
+        if os.path.exists(script):
+            script = script
         else:
-            script = SCRIPT_FIXTURES
+            script = os.path.join(FIXTURES, script)
         command = tuple(str(item) for item in command)
         return (sys.executable, script) + command
 
@@ -143,12 +144,12 @@ def gitrepo(tmpdir):
         yield repo
 
 
-@pytest.mark.xfail(strict=True)
+@pytest.mark.xfail
 def test_elsa_fixture_bad_exit_status(elsa):
     elsa.run('not', 'a', 'chance')
 
 
-@pytest.mark.xfail(strict=True)
+@pytest.mark.xfail
 def test_elsa_fixture_bad_exit_status_bg(elsa):
     with elsa.run_bg('not', 'a', 'chance'):
         pass
@@ -176,6 +177,12 @@ def test_freeze(elsa):
     elsa.run('freeze')
     with open(INDEX_FIXTURES) as f:
         assert 'SUCCESS' in f.read()
+
+
+@pytest.mark.xfail
+def test_freeze_mishmash(elsa):
+    # This script has a mime type mishmash
+    elsa.run('freeze', script='mishmash.py')
 
 
 def test_freeze_cname(elsa):

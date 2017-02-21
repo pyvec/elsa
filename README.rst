@@ -51,9 +51,9 @@ Here is an example ``.travis.yml`` file for automatic deployment. It assumes els
 
     language: python
     python:
-        - '3.5'
+        - '3.6'
     script:
-        - "echo 'No linters, no tests...'"
+        - 'python foo.py freeze'
     env:
       global:
         - secure: "blahblah"  # gem install travis; travis encrypt GITHUB_TOKEN=xyz --add
@@ -81,6 +81,7 @@ Further notes
 URLs
 ~~~~
 
-When you use URLs without trailing slash (e.g. ``https://example.com/foobar``), GitHub pages will serve the pages with bad Content-Type header
-(``application/octet-stream`` instead of ``text/html``) and the browser will attempt to download it.
+When you use URLs without trailing slash (e.g. ``https://example.com/foobar``), GitHub pages would serve the pages with bad Content-Type header
+(``application/octet-stream`` instead of ``text/html``) and the browser would attempt to download it.
+That's why Elsa will not allow such thing and will treat ``MimetypeMismatchWarning`` from Frozen-Flask as error.
 Make sure to use URLs with trailing slash (e.g. ``https://example.com/foobar/``) instead, so Frozen-Flask will create ``index.html`` in a folder and GitHub pages will use proper content type.

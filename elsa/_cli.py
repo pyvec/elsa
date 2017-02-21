@@ -1,5 +1,6 @@
 import os
 import urllib.parse
+import warnings
 
 from flask_frozen import Freezer
 from flask import Response
@@ -33,6 +34,8 @@ def freeze_app(app, freezer, path, base_url):
     app.config['FREEZER_DESTINATION'] = path
     app.config['FREEZER_BASE_URL'] = base_url
     app.config['SERVER_NAME'] = urllib.parse.urlparse(base_url).netloc
+    # make sure the warnings are treated as errors
+    warnings.simplefilter('error')
     freezer.freeze()
 
 
