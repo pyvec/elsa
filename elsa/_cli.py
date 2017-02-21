@@ -98,15 +98,24 @@ def cli(app, *, freezer=None, base_url=None):
                   help='URL for the application, used for external links, ' +
                   ('default {}'.format(base_url) if base_url else 'mandatory'
                    ' with --freeze'))
-    @click.option('--push/--no-push', default=True,
+    @click.option('--push/--no-push', default=None,
                   help='Whether to push the gh-pages branch, '
-                  'default is to push')
+                  'deprecated default is to push')
     @click.option('--freeze/--no-freeze', default=True,
                   help='Whether to freeze the site before deploying, '
                   'default is to freeze')
     @cname_option()
     def deploy(path, base_url, push, freeze, cname):
         """Deploy the site to GitHub pages"""
+        if push is None:
+            warnings.simplefilter('always')
+            msg = ('Using deploy without explicit --push/--no-push is '
+                   'deprecated. Assuming --push for now. In future versions '
+                   'of elsa, the deploy command will not push to the remote '
+                   'server by default. Use --push explicitly to maintain '
+                   'current behavior.')
+            warnings.warn(msg, DeprecationWarning)
+            push = True
         if freeze:
             if cname:
                 inject_cname(app)

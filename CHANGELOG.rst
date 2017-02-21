@@ -8,6 +8,10 @@ Changes
 * Treat Frozen-Flask warnings as errors
 * **Important:** It is now recommended to run ``freeze`` in ``.travis.yml``
   ``script`` section to catch problems in Pull Requests etc.
+* **Important:**  This version of Elsa will warn if you use the ``deploy``
+  command without specifying ``--push`` or ``--no-push`` explicitly.
+  In a future release, it will switch to *not* pushing the built pages by
+  default.
 
 
 0.1.dev4

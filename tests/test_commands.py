@@ -32,14 +32,15 @@ def parametrized_fixture(*args, **kwargs):
     return fixture
 
 
-def is_cname(option: str) -> bool:
+def is_true(option: str) -> bool:
     '''
-    Whether the given command line option means the CNAME should be generated
+    Whether the given command line option means true (i.e. it is not --no-*)
     '''
-    return option == '--cname'
+    return not option.startswith('--no-')
 
 
 cname = parametrized_fixture(cname='--cname', no_cname='--no-cname')
+push = parametrized_fixture(push='--push', no_push='--no-push')
 serve_command = parametrized_fixture(serve=['serve'],
                                      freeze_serve=['freeze', '--serve'])
 port = parametrized_fixture(8001, 8080)
@@ -56,7 +57,11 @@ class ElsaRunner:
     '''
     def run(self, *command, script=None):
         print('COMMAND: python website.py', *command)
-        subprocess.run(self.create_command(command, script), check=True)
+        cr = subprocess.run(self.create_command(command, script), check=True,
+                            stderr=subprocess.PIPE)
+        sys.stderr.write(cr.stderr)
+        cr.stderr = cr.stderr.decode('utf-8')
+        return cr
 
     @contextmanager
     def run_bg(self, *command, script=None):
@@ -126,20 +131,33 @@ def assert_commit_author(commit):
     assert 'Author: Tester Example <tester@example.org>' in commit
 
 
+def was_pushed(branch='gh-pages'):
+    local = str(sh.git('rev-parse', branch))
+    try:
+        remote = str(sh.git('rev-parse', 'origin/{}'.format(branch)))
+    except sh.ErrorReturnCode_128:
+        remote = None
+    return remote == local
+
+
 @pytest.fixture
 def gitrepo(tmpdir):
     '''
     This fixture creates a git repository with website.py in tmpdir
     '''
     repo = tmpdir.mkdir('repo')
+    bare = tmpdir.mkdir('bare')
     script = repo.join(SCRIPT)
     with open(SCRIPT_FIXTURES) as f:
         script.write(f.read())
+    with bare.as_cwd():
+        sh.git.init('--bare')
     with repo.as_cwd():
         sh.git.init()
         sh.git.add(SCRIPT)
         sh.git.config('user.email', 'tester@example.org')
         sh.git.config('user.name', 'Tester Example')
+        sh.git.remote.add('origin', str(bare))
         sh.git.commit('-m', 'Initial commit')
         yield repo
 
@@ -167,7 +185,7 @@ def test_port(elsa, port, serve_command):
 
 
 def test_cname(elsa, cname, serve_command):
-    code = 200 if is_cname(cname) else 404
+    code = 200 if is_true(cname) else 404
 
     with elsa.run_bg(*serve_command, cname):
         assert requests.get('http://localhost:8003/CNAME').status_code == code
@@ -215,25 +233,32 @@ def test_freeze_path(elsa, tmpdir, cname):
 
     assert path.check(dir=True)
     assert path.join('index.html').check(file=True)
-    assert is_cname(cname) == path.join('CNAME').check()
+    assert is_true(cname) == path.join('CNAME').check()
 
 
-def test_deploy_no_push_files(elsa, cname, gitrepo):
-    elsa.run('deploy', '--no-push', cname)
+def test_deploy_files(elsa, cname, push, gitrepo):
+    elsa.run('deploy', cname, push)
     with open(INDEX) as f:
         assert 'SUCCESS' in f.read()
-    assert is_cname(cname) == os.path.exists(CNAME)
+    assert is_true(cname) == os.path.exists(CNAME)
 
 
-def test_deploy_no_push_git(elsa, cname, gitrepo):
-    elsa.run('deploy', '--no-push', cname)
+def test_deploy_git(elsa, cname, push, gitrepo):
+    elsa.run('deploy', cname, push)
     commit = commit_info()
 
     assert '.nojekyll' in commit
     assert 'index.html' in commit
     assert 'SUCCESS' in commit
-    assert is_cname(cname) == ('CNAME' in commit)
+    assert is_true(cname) == ('CNAME' in commit)
     assert_commit_author(commit)
+    assert is_true(push) == was_pushed()
+
+
+def test_deploy_without_explicit_push_switch(elsa, gitrepo):
+    completed = elsa.run('deploy')
+    assert 'deprecated' in completed.stderr
+    assert was_pushed()
 
 
 @pytest.mark.parametrize('path', ('custom_path', 'default_path'))
