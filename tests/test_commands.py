@@ -55,6 +55,13 @@ def run_cmd(cmd, **kwargs):
     return subprocess.run(cmd, **kwargs)
 
 
+class CommandFailed(Exception):
+    """Raised when a command fails"""
+    # We use a custom exception because subprocess.CalledProcessError can't
+    # be raised from a completed Popen object. If that were possible
+    # (in a documented way), CalledProcessError would be a better choice.
+
+
 class ElsaRunner:
     '''
     Class for elsa fixture enabling blocking or background runs
@@ -64,8 +71,13 @@ class ElsaRunner:
     '''
     def run(self, *command, script=None):
         print('COMMAND: python website.py', *command)
-        cr = subprocess.run(self.create_command(command, script), check=True,
-                            stderr=subprocess.PIPE)
+        try:
+            cr = subprocess.run(
+                self.create_command(command, script), check=True,
+                stderr=subprocess.PIPE
+            )
+        except subprocess.CalledProcessError as e:
+            raise CommandFailed('return code was {}'.format(e.returncode))
         sys.stderr.write(cr.stderr)
         cr.stderr = cr.stderr.decode('utf-8')
         return cr
@@ -96,7 +108,8 @@ class ElsaRunner:
             proc.kill()
             _, errs = proc.communicate()
         sys.stderr.write(errs)
-        assert proc.returncode == 0
+        if proc.returncode != 0:
+            raise CommandFailed('return code was {}'.format(proc.returncode))
 
     def finalize(self):
         self.lax_rmtree(BUILDDIR_FIXTURES)
@@ -175,12 +188,12 @@ def gitrepo(tmpdir):
 
 
 def test_elsa_fixture_bad_exit_status(elsa):
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(CommandFailed):
         elsa.run('not', 'a', 'chance')
 
 
 def test_elsa_fixture_bad_exit_status_bg(elsa):
-    with pytest.raises(AssertionError):
+    with pytest.raises(CommandFailed):
         with elsa.run_bg('not', 'a', 'chance'):
             pass
 
@@ -210,7 +223,7 @@ def test_freeze(elsa):
 
 
 def test_freeze_mishmash(elsa):
-    with pytest.raises(subprocess.CalledProcessError):
+    with pytest.raises(CommandFailed):
         # This script has a mime type mishmash
         elsa.run('freeze', script='mishmash.py')
 
