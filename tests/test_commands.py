@@ -7,7 +7,6 @@ from contextlib import contextmanager
 
 import pytest
 import requests
-import sh
 
 
 FIXTURES = 'tests/fixtures'
@@ -46,6 +45,14 @@ serve_command = parametrized_fixture(serve=['serve'],
 port = parametrized_fixture(8001, 8080)
 domain = parametrized_fixture('foo.bar', 'spam.eggs')
 protocol = parametrized_fixture('http', 'https')
+
+
+def run_cmd(cmd, **kwargs):
+    """Same as ``subprocess.run``, but with more appropriate defaults"""
+    kwargs.setdefault('check', True)
+    kwargs.setdefault('timeout', 15)
+    kwargs.setdefault('stdout', subprocess.PIPE)
+    return subprocess.run(cmd, **kwargs)
 
 
 class ElsaRunner:
@@ -122,7 +129,8 @@ def elsa():
 
 
 def commit_info():
-    commit = str(sh.git('--no-pager', 'show', 'gh-pages', '--no-color'))
+    cmd = ['git', '--no-pager', 'show', 'gh-pages', '--no-color']
+    commit = run_cmd(cmd).stdout.decode('utf-8').strip()
     print(commit)
     return commit
 
@@ -132,11 +140,15 @@ def assert_commit_author(commit):
 
 
 def was_pushed(branch='gh-pages'):
-    local = str(sh.git('rev-parse', branch))
-    try:
-        remote = str(sh.git('rev-parse', 'origin/{}'.format(branch)))
-    except sh.ErrorReturnCode_128:
+    cmd = ['git', 'rev-parse', branch]
+    local = run_cmd(cmd).stdout.decode('utf-8').strip()
+    cmd = ['git', 'rev-parse', 'origin/{}'.format(branch)]
+    result = run_cmd(cmd, check=False)
+    if result.returncode == 128:
         remote = None
+    else:
+        result.check_returncode()
+    remote = result.stdout.decode('utf-8').strip()
     return remote == local
 
 
@@ -151,14 +163,14 @@ def gitrepo(tmpdir):
     with open(SCRIPT_FIXTURES) as f:
         script.write(f.read())
     with bare.as_cwd():
-        sh.git.init('--bare')
+        run_cmd(['git', 'init', '--bare'])
     with repo.as_cwd():
-        sh.git.init()
-        sh.git.add(SCRIPT)
-        sh.git.config('user.email', 'tester@example.org')
-        sh.git.config('user.name', 'Tester Example')
-        sh.git.remote.add('origin', str(bare))
-        sh.git.commit('-m', 'Initial commit')
+        run_cmd(['git', 'init'])
+        run_cmd(['git', 'add', SCRIPT])
+        run_cmd(['git', 'config', 'user.email', 'tester@example.org'])
+        run_cmd(['git', 'config', 'user.name', 'Tester Example'])
+        run_cmd(['git', 'remote', 'add', 'origin', str(bare)])
+        run_cmd(['git', 'commit', '-m', 'Initial commit'])
         yield repo
 
 

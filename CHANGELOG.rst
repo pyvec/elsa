@@ -12,6 +12,7 @@ Changes
   command without specifying ``--push`` or ``--no-push`` explicitly.
   In a future release, it will switch to *not* pushing the built pages by
   default.
+* Remove the dependency on ``sh`` to improve compatibility with Windows
 
 
 0.1.dev4

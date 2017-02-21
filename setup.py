@@ -33,7 +33,6 @@ setup(
         'Flask',
         'Frozen-Flask',
         'ghp-import',
-        'sh',
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest>=3', 'requests', 'pytest-flake8'],

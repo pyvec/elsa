@@ -1,6 +1,6 @@
 import os
 import random
-from sh import git, ghp_import
+import subprocess
 
 COMMIT_EMOJIS = [
     ':sunglasses:', ':two_hearts:', ':sparkles:', ':star2:', ':star:',
@@ -11,28 +11,39 @@ COMMIT_EMOJIS = [
 ]
 
 
+def run(cmd, **kwargs):
+    """Same as ``subprocess.run``, but checks the result by default"""
+    kwargs.setdefault('check', True)
+    return subprocess.run(cmd, **kwargs)
+
+
+def get_last_commit_info(format):
+    cmd = ['git', '--no-pager', 'show', '--format', format, '--no-patch']
+    process = run(cmd, stdout=subprocess.PIPE)
+    return process.stdout.strip()
+
+
 def deploy(html_dir, *, push):
     """Deploy to GitHub pages, expects to be already frozen"""
     if os.environ.get('TRAVIS'):  # Travis CI
         print('Setting up git...')
-        git.config(
-            'user.name',
-            git('show', format='%cN', s=True, _tty_out=False).strip()
-        )
-        git.config(
-            'user.email',
-            git('show', format='%cE', s=True, _tty_out=False).strip()
-        )
+        run(['git', 'config', 'user.name', get_last_commit_info('%cN')])
+        run(['git', 'config', 'user.email', get_last_commit_info('%cE')])
 
         github_token = os.environ.get('GITHUB_TOKEN')  # from .travis.yml
         repo_slug = os.environ.get('TRAVIS_REPO_SLUG')
         origin = 'https://{}@github.com/{}.git'.format(github_token, repo_slug)
-        git.remote('set-url', 'origin', origin)
+        run(['git', 'remote', '--set-url', 'origin', origin])
 
     print('Rewriting gh-pages branch...')
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
-    ghp_import('-n', '-m', commit_message, html_dir)  # -n for .nojekyll file
+    run([
+        'ghp-import',
+        '-n',  # .nojekyll file
+        '-m', commit_message,
+        html_dir
+    ])
 
     if push:
         print('Pushing to GitHub...')
-        git.push('origin', 'gh-pages:gh-pages', force=True)
+        run(['git', 'push', 'origin', 'gh-pages:gh-pages', '--force'])
