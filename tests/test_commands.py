@@ -174,15 +174,15 @@ def gitrepo(tmpdir):
         yield repo
 
 
-@pytest.mark.xfail
 def test_elsa_fixture_bad_exit_status(elsa):
-    elsa.run('not', 'a', 'chance')
+    with pytest.raises(subprocess.CalledProcessError):
+        elsa.run('not', 'a', 'chance')
 
 
-@pytest.mark.xfail
 def test_elsa_fixture_bad_exit_status_bg(elsa):
-    with elsa.run_bg('not', 'a', 'chance'):
-        pass
+    with pytest.raises(AssertionError):
+        with elsa.run_bg('not', 'a', 'chance'):
+            pass
 
 
 def test_serve(elsa):
@@ -209,10 +209,10 @@ def test_freeze(elsa):
         assert 'SUCCESS' in f.read()
 
 
-@pytest.mark.xfail
 def test_freeze_mishmash(elsa):
-    # This script has a mime type mishmash
-    elsa.run('freeze', script='mishmash.py')
+    with pytest.raises(subprocess.CalledProcessError):
+        # This script has a mime type mishmash
+        elsa.run('freeze', script='mishmash.py')
 
 
 def test_freeze_cname(elsa):
