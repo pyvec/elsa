@@ -2,11 +2,11 @@ import os
 import urllib.parse
 import warnings
 
-from flask_frozen import Freezer
 from flask import Response
 import click
 
 from ._deployment import deploy as deploy_
+from ._shutdown import ShutdownableFreezer, inject_shutdown
 
 
 def port_option():
@@ -50,7 +50,7 @@ def inject_cname(app):
 def cli(app, *, freezer=None, base_url=None):
     """Get a cli() function for provided app"""
     if not freezer:
-        freezer = Freezer(app)
+        freezer = ShutdownableFreezer(app)
 
     @click.group(context_settings=dict(help_option_names=['-h', '--help']),
                  help=__doc__)
@@ -68,6 +68,7 @@ def cli(app, *, freezer=None, base_url=None):
         if auto_reload or auto_reload is None:
             app.jinja_env.auto_reload = True
 
+        inject_shutdown(app)
         if cname:
             inject_cname(app)
 

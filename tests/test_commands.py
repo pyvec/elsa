@@ -1,6 +1,5 @@
 import os
 import shutil
-import signal
 import subprocess
 import sys
 from contextlib import contextmanager
@@ -78,13 +77,14 @@ class ElsaRunner:
             )
         except subprocess.CalledProcessError as e:
             raise CommandFailed('return code was {}'.format(e.returncode))
-        sys.stderr.write(cr.stderr)
         cr.stderr = cr.stderr.decode('utf-8')
+        sys.stderr.write(cr.stderr)
         return cr
 
     @contextmanager
     def run_bg(self, *command, script=None):
         print('COMMAND IN BACKGROUND: python website.py', *command)
+        port = self.parse_port(command)
         proc = subprocess.Popen(self.create_command(command, script),
                                 stderr=subprocess.PIPE,
                                 universal_newlines=True)
@@ -101,14 +101,27 @@ class ElsaRunner:
 
         yield proc
 
-        os.kill(proc.pid, signal.SIGINT)  # Ctrl+C
+        try:
+            # Shutdown the server via POST request
+            url = 'http://localhost:{}/__shutdown__/'.format(port)
+            print('Shutting down via', url)
+            requests.post(url)
+        except Exception as e:
+            print(e)
+            proc.kill()
+
         try:
             _, errs = proc.communicate(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
             _, errs = proc.communicate()
         sys.stderr.write(errs)
-        if proc.returncode != 0:
+
+        # werkzeug.server.shutdown does:
+        # * 247 on debug
+        # * 0 on non-debug
+        # * 15 on Windows
+        if proc.returncode not in (0, 15, 247):
             raise CommandFailed('return code was {}'.format(proc.returncode))
 
     def finalize(self):
@@ -123,6 +136,12 @@ class ElsaRunner:
             script = os.path.join(FIXTURES, script)
         command = tuple(str(item) for item in command)
         return (sys.executable, script) + command
+
+    @classmethod
+    def parse_port(cls, command):
+        if '--port' in command:
+            return int(command[command.index('--port') + 1])
+        return 8003
 
     @classmethod
     def lax_rmtree(cls, path):
