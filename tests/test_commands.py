@@ -108,7 +108,6 @@ class ElsaRunner:
             requests.post(url)
         except Exception as e:
             print(e)
-            proc.kill()
 
         try:
             _, errs = proc.communicate(timeout=5)
