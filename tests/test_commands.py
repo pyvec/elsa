@@ -51,6 +51,7 @@ def run_cmd(cmd, **kwargs):
     kwargs.setdefault('check', True)
     kwargs.setdefault('timeout', 15)
     kwargs.setdefault('stdout', subprocess.PIPE)
+    print('SH:', *cmd)
     return subprocess.run(cmd, **kwargs)
 
 
@@ -164,6 +165,13 @@ def commit_info():
     commit = run_cmd(cmd).stdout.decode('utf-8').strip()
     print(commit)
     return commit
+
+
+def commits():
+    cmd = ['git', '--no-pager', 'log', '--pretty=format:%h %s', 'gh-pages']
+    commits = run_cmd(cmd).stdout.decode('utf-8').strip()
+    print(commits)
+    return commits.splitlines()
 
 
 def assert_commit_author(commit):
@@ -296,6 +304,13 @@ def test_deploy_git(elsa, cname, push, gitrepo):
     assert is_true(cname) == ('CNAME' in commit)
     assert_commit_author(commit)
     assert is_true(push) == was_pushed()
+
+
+def test_deploy_twice_only_one_commit(elsa, gitrepo):
+    elsa.run('deploy', '--no-push')
+    elsa.run('deploy', '--no-push')
+    assert 'SUCCESS' in commit_info()
+    assert len(commits()) == 1
 
 
 def test_deploy_without_explicit_push_switch(elsa, gitrepo):

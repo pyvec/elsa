@@ -36,6 +36,8 @@ def deploy(html_dir, *, push):
         run(['git', 'remote', '--set-url', 'origin', origin])
 
     print('Rewriting gh-pages branch...')
+    run(['git', 'branch', '-D', 'gh-pages'], check=False,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
     run([
         'ghp-import',
