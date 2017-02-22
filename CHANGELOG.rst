@@ -1,6 +1,12 @@
 Changes
 =======
 
+0.1.1
+-----
+
+* Fix a problem with Travis CI based deployment
+
+
 0.1
 ---
 

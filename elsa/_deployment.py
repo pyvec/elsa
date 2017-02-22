@@ -18,7 +18,7 @@ def run(cmd, **kwargs):
 
 
 def get_last_commit_info(format):
-    cmd = ['git', '--no-pager', 'show', '--format', format, '--no-patch']
+    cmd = ['git', '--no-pager', 'show', '--format=' + format, '--no-patch']
     process = run(cmd, stdout=subprocess.PIPE)
     return process.stdout.strip()
 
@@ -33,7 +33,7 @@ def deploy(html_dir, *, push):
         github_token = os.environ.get('GITHUB_TOKEN')  # from .travis.yml
         repo_slug = os.environ.get('TRAVIS_REPO_SLUG')
         origin = 'https://{}@github.com/{}.git'.format(github_token, repo_slug)
-        run(['git', 'remote', '--set-url', 'origin', origin])
+        run(['git', 'remote', 'set-url', 'origin', origin])
 
     print('Rewriting gh-pages branch...')
     run(['git', 'branch', '-D', 'gh-pages'], check=False,
