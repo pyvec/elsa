@@ -3,11 +3,28 @@ python:
 - '3.5'
 - '3.6'
 - 'nightly'
+matrix:
+  include:
+    - os: osx
+      sudo: required
+      language: generic
+      python: 3.6
+      env:
+      - TRAVIS_PYTHON_VERSION: 3.6
+  allow_failures:
+    - os: osx
+  fast_finish: true
 cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION/lib/python$TRAVIS_PYTHON_VERSION/site-packages
     - $HOME/virtualenv/python$TRAVIS_PYTHON_VERSION/bin
-install:
-    - pip install --upgrade tox tox-travis
+install: |
+  if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+      brew update;
+      brew install python3;
+      python3 -m pip install --upgrade tox tox-travis
+  else
+      pip install --upgrade tox tox-travis
+  fi
 script: tox
