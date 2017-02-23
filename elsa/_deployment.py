@@ -14,6 +14,11 @@ COMMIT_EMOJIS = [
 def run(cmd, **kwargs):
     """Same as ``subprocess.run``, but checks the result by default"""
     kwargs.setdefault('check', True)
+    if 'quiet' in kwargs:
+        if kwargs['quiet']:
+            kwargs['stdout'] = subprocess.DEVNULL
+            kwargs['stderr'] = subprocess.DEVNULL
+        del kwargs['quiet']
     return subprocess.run(cmd, **kwargs)
 
 
@@ -36,8 +41,7 @@ def deploy(html_dir, *, push):
         run(['git', 'remote', 'set-url', 'origin', origin])
 
     print('Rewriting gh-pages branch...')
-    run(['git', 'branch', '-D', 'gh-pages'], check=False,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    run(['git', 'branch', '-D', 'gh-pages'], check=False, quiet=True)
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
     run([
         'ghp-import',
@@ -48,4 +52,5 @@ def deploy(html_dir, *, push):
 
     if push:
         print('Pushing to GitHub...')
-        run(['git', 'push', 'origin', 'gh-pages:gh-pages', '--force'])
+        run(['git', 'push', 'origin', 'gh-pages:gh-pages', '--force'],
+            quiet=True)

@@ -335,3 +335,12 @@ def test_freeze_and_deploy(elsa, tmpdir, path, gitrepo):
     commit = commit_info()
     assert 'SUCCESS' in commit
     assert_commit_author(commit)
+
+
+def test_remote_not_displayed_when_pushing(elsa, gitrepo, capsys):
+    elsa.run('deploy', '--push')
+    out, err = capsys.readouterr()
+    print('OUT', out)
+    print('ERR', err)
+    assert '/bare' not in out
+    assert '/bare' not in err

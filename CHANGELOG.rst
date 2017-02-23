@@ -1,6 +1,16 @@
 Changes
 =======
 
+0.1.2
+-----
+
+* **Security:** Do not display the remote URL when pushing gh-pages branch.
+  If you used Elsa 0.1 or 0.1.1 on Travis CI, revoke your GitHub
+  token, it was probably leaked in the log. (`#25`_)
+
+.. _#25: https://github.com/pyvec/elsa/issues/25
+
+
 0.1.1
 -----
 
