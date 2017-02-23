@@ -306,11 +306,13 @@ def test_deploy_git(elsa, cname, push, gitrepo):
     assert is_true(push) == was_pushed()
 
 
-def test_deploy_twice_only_one_commit(elsa, gitrepo):
-    elsa.run('deploy', '--no-push')
-    elsa.run('deploy', '--no-push')
-    assert 'SUCCESS' in commit_info()
+def test_deploy_twice_only_one_commit(elsa, push, gitrepo):
+    if is_true(push):
+        pytest.xfail('https://github.com/pyvec/elsa/issues/14')
+    elsa.run('deploy', push)
+    elsa.run('deploy', push)
     assert len(commits()) == 1
+    assert 'SUCCESS' in commit_info()
 
 
 def test_deploy_without_explicit_push_switch(elsa, gitrepo):
