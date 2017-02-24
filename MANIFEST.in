@@ -1,5 +1,4 @@
-include README.rst
-include CHANGELOG.rst
+include *.rst
 include LICENSE
 include *.ini
 recursive-include tests *.py

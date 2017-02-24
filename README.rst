@@ -36,6 +36,10 @@ This will add command line interface to the script, enabling you to use it like 
 
 See more options with ``--help``.
 
+Follow the `quickstart tutorial
+<https://github.com/pyvec/elsa/blob/master/QUICKSTART.rst>`_
+for more information.
+
 Travis CI based deployment
 --------------------------
 
