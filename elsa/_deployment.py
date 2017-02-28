@@ -28,6 +28,12 @@ def get_last_commit_info(format):
     return process.stdout.strip()
 
 
+def get_git_toplevel():
+    cmd = ['git', 'rev-parse', '--show-toplevel']
+    process = run(cmd, stdout=subprocess.PIPE)
+    return process.stdout.strip().decode('utf-8')
+
+
 def deploy(html_dir, *, remote, push):
     """Deploy to GitHub pages, expects to be already frozen"""
     if os.environ.get('TRAVIS'):  # Travis CI
@@ -43,6 +49,7 @@ def deploy(html_dir, *, remote, push):
     print('Rewriting gh-pages branch...')
     run(['git', 'branch', '-D', 'gh-pages'], check=False, quiet=True)
     ref = '.git/refs/remotes/{}/gh-pages'.format(remote)
+    ref = os.path.join(get_git_toplevel(), ref)
     if os.path.exists(ref):
         os.remove(ref)
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
