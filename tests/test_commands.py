@@ -178,10 +178,10 @@ def assert_commit_author(commit):
     assert 'Author: Tester Example <tester@example.org>' in commit
 
 
-def was_pushed(branch='gh-pages'):
+def was_pushed(*, remote='origin', branch='gh-pages'):
     cmd = ['git', 'rev-parse', branch]
     local = run_cmd(cmd).stdout.decode('utf-8').strip()
-    cmd = ['git', 'rev-parse', 'origin/{}'.format(branch)]
+    cmd = ['git', 'rev-parse', '{}/{}'.format(remote, branch)]
     result = run_cmd(cmd, check=False)
     if result.returncode == 128:
         remote = None
@@ -344,3 +344,11 @@ def test_remote_not_displayed_when_pushing(elsa, gitrepo, capsys):
     print('ERR', err)
     assert '/bare' not in out
     assert '/bare' not in err
+
+
+def test_deploy_different_remote(elsa, push, gitrepo):
+    remote = 'foo'
+    run_cmd(['git', 'remote', 'rename', 'origin', remote])
+    elsa.run('deploy', push, '--remote', 'foo')
+    assert 'SUCCESS' in commit_info()
+    assert is_true(push) == was_pushed(remote=remote)

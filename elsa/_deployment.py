@@ -28,7 +28,7 @@ def get_last_commit_info(format):
     return process.stdout.strip()
 
 
-def deploy(html_dir, *, push):
+def deploy(html_dir, *, remote, push):
     """Deploy to GitHub pages, expects to be already frozen"""
     if os.environ.get('TRAVIS'):  # Travis CI
         print('Setting up git...')
@@ -37,12 +37,12 @@ def deploy(html_dir, *, push):
 
         github_token = os.environ.get('GITHUB_TOKEN')  # from .travis.yml
         repo_slug = os.environ.get('TRAVIS_REPO_SLUG')
-        origin = 'https://{}@github.com/{}.git'.format(github_token, repo_slug)
-        run(['git', 'remote', 'set-url', 'origin', origin])
+        rurl = 'https://{}@github.com/{}.git'.format(github_token, repo_slug)
+        run(['git', 'remote', 'set-url', remote, rurl])
 
     print('Rewriting gh-pages branch...')
     run(['git', 'branch', '-D', 'gh-pages'], check=False, quiet=True)
-    ref = '.git/refs/remotes/origin/gh-pages'
+    ref = '.git/refs/remotes/{}/gh-pages'.format(remote)
     if os.path.exists(ref):
         os.remove(ref)
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
@@ -50,10 +50,11 @@ def deploy(html_dir, *, push):
         'ghp-import',
         '-n',  # .nojekyll file
         '-m', commit_message,
+        '-r', remote,
         html_dir
     ])
 
     if push:
         print('Pushing to GitHub...')
-        run(['git', 'push', 'origin', 'gh-pages:gh-pages', '--force'],
+        run(['git', 'push', remote, 'gh-pages:gh-pages', '--force'],
             quiet=True)

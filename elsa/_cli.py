@@ -99,6 +99,9 @@ def cli(app, *, freezer=None, base_url=None):
                   help='URL for the application, used for external links, ' +
                   ('default {}'.format(base_url) if base_url else 'mandatory'
                    ' with --freeze'))
+    @click.option('--remote', default='origin',
+                  help='The name of the remote to push to, '
+                  'default origin')
     @click.option('--push/--no-push', default=None,
                   help='Whether to push the gh-pages branch, '
                   'deprecated default is to push')
@@ -106,7 +109,7 @@ def cli(app, *, freezer=None, base_url=None):
                   help='Whether to freeze the site before deploying, '
                   'default is to freeze')
     @cname_option()
-    def deploy(path, base_url, push, freeze, cname):
+    def deploy(path, base_url, remote, push, freeze, cname):
         """Deploy the site to GitHub pages"""
         if push is None:
             warnings.simplefilter('always')
@@ -122,6 +125,6 @@ def cli(app, *, freezer=None, base_url=None):
                 inject_cname(app)
             freeze_app(app, freezer, path, base_url)
 
-        deploy_(path, push=push)
+        deploy_(path, remote=remote, push=push)
 
     return command()
