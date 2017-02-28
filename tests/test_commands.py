@@ -307,8 +307,6 @@ def test_deploy_git(elsa, cname, push, gitrepo):
 
 
 def test_deploy_twice_only_one_commit(elsa, push, gitrepo):
-    if is_true(push):
-        pytest.xfail('https://github.com/pyvec/elsa/issues/14')
     elsa.run('deploy', push)
     elsa.run('deploy', push)
     assert len(commits()) == 1

@@ -42,6 +42,9 @@ def deploy(html_dir, *, push):
 
     print('Rewriting gh-pages branch...')
     run(['git', 'branch', '-D', 'gh-pages'], check=False, quiet=True)
+    ref = '.git/refs/remotes/origin/gh-pages'
+    if os.path.exists(ref):
+        os.remove(ref)
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
     run([
         'ghp-import',
