@@ -63,7 +63,8 @@ Here is an example ``.travis.yml`` file for automatic deployment. It assumes els
         - secure: "blahblah"  # gem install travis; travis encrypt GITHUB_TOKEN=xyz --add
     deploy:
         provider: script
-        script: 'python foo.py deploy --push'
+        skip_cleanup: true
+        script: 'python foo.py deploy --no-freeze --push'
         on:
             branch: master
             repo: only/yours

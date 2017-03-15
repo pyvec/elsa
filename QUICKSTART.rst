@@ -175,7 +175,8 @@ Create a ``.travis.yml`` file in the repository with the following content:
     - python website.py freeze
     deploy:
       provider: script
-      script: python website.py deploy --push
+      skip_cleanup: true
+      script: python website.py deploy --no-freeze --push
       on:
         branch: master
         repo: username/reponame
@@ -217,14 +218,17 @@ notified by e-mail.
 
     deploy:
       provider: script
-      script: python website.py deploy --push
+      skip_cleanup: true
+      script: python website.py deploy --no-freeze --push
       on:
         branch: master
         repo: username/reponame
 
 The ``deploy`` section is only run when the ``script`` section succeeds.
 We also limit it to master branch and your own repo to make sure only the right
-version of the website gets deployed.
+version of the website gets deployed. The ``skip_cleanup`` tells Travis CI
+not to clean the repository before deploying, so we can use the ``--no-freeze``
+flag (Elsa already froze the website in the ``script`` section).
 
 ----------
 
@@ -263,7 +267,8 @@ The ``.travis.yml`` should now look similarly to this:
     - python website.py freeze
     deploy:
       provider: script
-      script: python website.py deploy --push
+      skip_cleanup: true
+      script: python website.py deploy --no-freeze --push
       on:
         branch: master
         repo: username/reponame
