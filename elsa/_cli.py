@@ -3,6 +3,7 @@ import urllib.parse
 import warnings
 
 from flask import Response
+import flask_frozen
 import click
 
 from ._deployment import deploy as deploy_
@@ -34,8 +35,10 @@ def freeze_app(app, freezer, path, base_url):
     app.config['FREEZER_DESTINATION'] = path
     app.config['FREEZER_BASE_URL'] = base_url
     app.config['SERVER_NAME'] = urllib.parse.urlparse(base_url).netloc
-    # make sure the warnings are treated as errors
-    warnings.simplefilter('error')
+
+    # make sure Frozen Flask warnings are treated as errors
+    warnings.filterwarnings('error', category=flask_frozen.FrozenFlaskWarning)
+
     freezer.freeze()
 
 

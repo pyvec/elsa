@@ -254,6 +254,12 @@ def test_freeze_mishmash(elsa):
         elsa.run('freeze', script='mishmash.py')
 
 
+def test_freeze_different_warning_is_fine(elsa):
+    # This script has a PendingDeprecationWarning
+    elsa.run('freeze', script='warning.py')
+    # tests just success of the command
+
+
 def test_freeze_cname(elsa):
     elsa.run('freeze')
     with open(CNAME_FIXTURES) as f:

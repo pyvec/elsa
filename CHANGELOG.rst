@@ -4,6 +4,9 @@ Changes
 0.1.3 (unreleased)
 ------------------
 
+* Only treat Frozen-Flask warnings as errors, not other warnings (`#34`_)
+
+.. _#34: https://github.com/pyvec/elsa/pull/34
 
 
 0.1.2

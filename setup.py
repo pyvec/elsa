@@ -31,7 +31,7 @@ setup(
     install_requires=[
         'click',
         'Flask',
-        'Frozen-Flask',
+        'Frozen-Flask >= 0.14',
         'ghp-import',
     ],
     setup_requires=['pytest-runner'],
