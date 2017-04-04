@@ -1,11 +1,15 @@
 Changes
 =======
 
-0.1.3 (unreleased)
-------------------
+0.1.3
+-----
 
 * Only treat Frozen-Flask warnings as errors, not other warnings (`#34`_)
+* Add a ``--remote`` option for ``deploy`` to use a custom git remote
+* Be consistent on local vs Travis CI deployment, always erase the history
+  of the ``gh-pages`` branch (actually fixes `#14`_)
 
+.. _#14: https://github.com/pyvec/elsa/issues/14
 .. _#34: https://github.com/pyvec/elsa/pull/34
 
 
