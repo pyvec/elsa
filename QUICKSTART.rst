@@ -240,7 +240,7 @@ On your own machine, you can push to the repository as usual, but Travis CI
 cannot, it does not have write access. In order to provide one, you'll have to
 `create a personal access token on GitHub
 <https://help.github.com/articles/creating-an-access-token-for-command-line-use/>`_
-(no scopes are needed) and provide it to Travis CI.
+(repo scope needed) and provide it to Travis CI.
 
 You cannot just add the token to ``.travis.yml``, as anyone could read it,
 so you'll add it encrypted. Don't worry, it's not complicated,
