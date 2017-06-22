@@ -29,7 +29,7 @@ setup(
     url='https://github.com/pyvec/elsa',
     packages=[p for p in find_packages() if p != 'tests'],
     install_requires=[
-        'click',
+        'click >= 2.0',
         'Flask',
         'Frozen-Flask >= 0.14',
         'ghp-import',

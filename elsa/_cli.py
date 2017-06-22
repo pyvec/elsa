@@ -28,10 +28,27 @@ def path_option(app):
         help='Input path, default _build')
 
 
+def _get_item_show_func(label, width, air=8, end=''):
+    def item_show_func(page):
+        if page is None:
+            return end
+
+        available = click.get_terminal_size()[0] - len(label) - width - air
+        if len(page.url) <= available:
+            return page.url
+
+        use = available - 1
+        first = use // 2
+        last = use - first
+        return page.url[:first] + '…' + page.url[-last:]
+
+    return item_show_func
+
+
 def freeze_app(app, freezer, path, base_url):
     if not base_url:
         raise click.UsageError('No base URL provided, use --base-url')
-    print('Generating HTML...')
+
     app.config['FREEZER_DESTINATION'] = path
     app.config['FREEZER_BASE_URL'] = base_url
     app.config['SERVER_NAME'] = urllib.parse.urlparse(base_url).netloc
@@ -39,7 +56,15 @@ def freeze_app(app, freezer, path, base_url):
     # make sure Frozen Flask warnings are treated as errors
     warnings.filterwarnings('error', category=flask_frozen.FrozenFlaskWarning)
 
-    freezer.freeze()
+    label = 'Generating HTML...'
+    width = max(click.get_terminal_size()[0] // 6, 3)
+
+    with click.progressbar(freezer.freeze_yield(),
+                           item_show_func=_get_item_show_func(label, width),
+                           width=width,
+                           label=label) as urls:
+        for url in urls:
+            pass  # Frozen-Flask and click.progressbar doing all the hard work
 
 
 def inject_cname(app):
