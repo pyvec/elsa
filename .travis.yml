@@ -15,6 +15,7 @@ matrix:
       - TRAVIS_PYTHON_VERSION: 3.6
   allow_failures:
     - os: osx
+    - python: nightly
   fast_finish: true
 cache:
   directories:
