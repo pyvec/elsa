@@ -1,4 +1,5 @@
 import os
+import sys
 import urllib.parse
 import warnings
 
@@ -39,7 +40,11 @@ def freeze_app(app, freezer, path, base_url):
     # make sure Frozen Flask warnings are treated as errors
     warnings.filterwarnings('error', category=flask_frozen.FrozenFlaskWarning)
 
-    freezer.freeze()
+    try:
+        freezer.freeze()
+    except flask_frozen.FrozenFlaskWarning as w:
+        print('Error:', w, file=sys.stderr)
+        sys.exit(1)
 
 
 def inject_cname(app):

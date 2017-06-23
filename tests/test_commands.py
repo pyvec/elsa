@@ -291,6 +291,15 @@ def test_freeze_different_warning_is_fine(elsa):
     # tests just success of the command
 
 
+def test_freeze_mishmash_decent_error_msg(elsa, capsys):
+    elsa.run('freeze', script='mishmash.py', should_fail=True)
+    out, err = capsys.readouterr()
+    print('OUT', out)
+    print('ERR', err)
+    assert 'Traceback' not in err
+    assert 'does not match' in err
+
+
 def test_freeze_cname(elsa):
     elsa.run('freeze')
     with open(CNAME_FIXTURES) as f:
