@@ -111,8 +111,12 @@ def cli(app, *, freezer=None, base_url=None):
     @click.option('--freeze/--no-freeze', default=True,
                   help='Whether to freeze the site before deploying, '
                   'default is to freeze')
+    @click.option('--show-git-push-stderr', is_flag=True,
+                  help='Show the stderr output of `git push` failure, '
+                       'might be dangerous if logs are public')
     @cname_option()
-    def deploy(path, base_url, remote, push, freeze, cname):
+    def deploy(path, base_url, remote, push, freeze,
+               show_git_push_stderr, cname):
         """Deploy the site to GitHub pages"""
         if push is None:
             warnings.simplefilter('always')
@@ -128,6 +132,6 @@ def cli(app, *, freezer=None, base_url=None):
                 inject_cname(app)
             freeze_app(app, freezer, path, base_url)
 
-        deploy_(path, remote=remote, push=push)
+        deploy_(path, remote=remote, push=push, show_err=show_git_push_stderr)
 
     return command()

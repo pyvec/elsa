@@ -1,6 +1,14 @@
 Changes
 =======
 
+0.1.4 (unreleased)
+------------------
+
+* Add the ``--show-git-push-stderr`` option to make deploy more verbose,
+  this can help debug problems, but is potentially dangerous, hence the output
+  of ``git push`` is hidden by default.
+
+
 0.1.3
 -----
 

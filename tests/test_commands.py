@@ -398,6 +398,21 @@ def test_remote_not_displayed_when_pushing_fails(elsa, gitrepo, capsys):
     assert url not in err
 
 
+def test_push_error_displayed_when_explicitly_asked_for(elsa, gitrepo, capsys):
+    url = 'https://example.com'
+    run_cmd(['git', 'remote', 'set-url', 'origin', url])
+
+    capsys.readouterr()  # flush
+
+    elsa.run('deploy', '--push', '--show-git-push-stderr', should_fail=True)
+    out, err = capsys.readouterr()
+
+    print('OUT', out)
+    print('ERR', err)
+    assert url in err
+    assert 'not found' in err
+
+
 def test_traceback_not_displayed_when_pushing_fails(elsa, gitrepo, capsys):
     run_cmd(['git', 'remote', 'set-url', 'origin', 'foo'])
     elsa.run('deploy', '--push', should_fail=True)

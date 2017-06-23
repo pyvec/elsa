@@ -35,7 +35,7 @@ def get_git_toplevel():
     return process.stdout.strip().decode('utf-8')
 
 
-def deploy(html_dir, *, remote, push):
+def deploy(html_dir, *, remote, push, show_err):
     """Deploy to GitHub pages, expects to be already frozen"""
     if os.environ.get('TRAVIS'):  # Travis CI
         print('Setting up git...')
@@ -66,11 +66,14 @@ def deploy(html_dir, *, remote, push):
         print('Pushing to GitHub...')
         try:
             run(['git', 'push', remote, 'gh-pages:gh-pages', '--force'],
-                quiet=True)
+                quiet=not show_err)
         except subprocess.CalledProcessError as e:
-            msg = ('Error: git push failed (exit status {}).\n'
-                   'Note: Due to security constraints, Elsa does not show the '
-                   'error message from git, as it may include sensitive '
-                   'information and this could be logged.')
+            msg = 'Error: git push failed (exit status {}).'
+            if not show_err:
+                msg += ('\nNote: Due to security constraints, Elsa does not '
+                        'show the error message from git, as it may include '
+                        'sensitive information and this could be logged. Use '
+                        'the --show-git-push-stderr switch to change this '
+                        'behavior.')
             print(msg.format(e.returncode), file=sys.stderr)
             sys.exit(e.returncode)
