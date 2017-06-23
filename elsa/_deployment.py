@@ -1,6 +1,7 @@
 import os
 import random
 import subprocess
+import sys
 
 COMMIT_EMOJIS = [
     ':sunglasses:', ':two_hearts:', ':sparkles:', ':star2:', ':star:',
@@ -63,5 +64,13 @@ def deploy(html_dir, *, remote, push):
 
     if push:
         print('Pushing to GitHub...')
-        run(['git', 'push', remote, 'gh-pages:gh-pages', '--force'],
-            quiet=True)
+        try:
+            run(['git', 'push', remote, 'gh-pages:gh-pages', '--force'],
+                quiet=True)
+        except subprocess.CalledProcessError as e:
+            msg = ('Error: git push failed (exit status {}).\n'
+                   'Note: Due to security constraints, Elsa does not show the '
+                   'error message from git, as it may include sensitive '
+                   'information and this could be logged.')
+            print(msg.format(e.returncode), file=sys.stderr)
+            sys.exit(e.returncode)

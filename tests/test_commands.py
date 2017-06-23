@@ -62,6 +62,10 @@ class CommandFailed(Exception):
     # (in a documented way), CalledProcessError would be a better choice.
 
 
+class CommandNotFailed(Exception):
+    """Raised when a command should have failed, but didn't"""
+
+
 class ElsaRunner:
     '''
     Class for elsa fixture enabling blocking or background runs
@@ -69,21 +73,23 @@ class ElsaRunner:
     If there is a local website.py in pwd, uses that one,
     uses the one from fixtures instead.
     '''
-    def run(self, *command, script=None):
+    def run(self, *command, script=None, should_fail=False):
         print('COMMAND: python website.py', *command)
         try:
             cr = subprocess.run(
-                self.create_command(command, script), check=True,
+                self.create_command(command, script), check=not should_fail,
                 stderr=subprocess.PIPE
             )
         except subprocess.CalledProcessError as e:
             raise CommandFailed('return code was {}'.format(e.returncode))
+        if should_fail and cr.returncode == 0:
+            raise CommandNotFailed('return code was 0')
         cr.stderr = cr.stderr.decode('utf-8')
         sys.stderr.write(cr.stderr)
         return cr
 
     @contextmanager
-    def run_bg(self, *command, script=None):
+    def run_bg(self, *command, script=None, should_fail=False):
         print('COMMAND IN BACKGROUND: python website.py', *command)
         port = self.parse_port(command)
         proc = subprocess.Popen(self.create_command(command, script),
@@ -122,7 +128,12 @@ class ElsaRunner:
         # * 0 on non-debug
         # * 15 on Windows
         if proc.returncode not in (0, 15, 247):
-            raise CommandFailed('return code was {}'.format(proc.returncode))
+            if not should_fail:
+                raise CommandFailed(
+                    'return code was {}'.format(proc.returncode))
+        elif should_fail:
+            raise CommandNotFailed(
+                'return code was {}'.format(proc.returncode))
 
     def finalize(self):
         self.lax_rmtree(BUILDDIR_FIXTURES)
@@ -218,9 +229,29 @@ def test_elsa_fixture_bad_exit_status(elsa):
         elsa.run('not', 'a', 'chance')
 
 
+def test_elsa_fixture_bad_exit_status_should_fail(elsa):
+    elsa.run('not', 'a', 'chance', should_fail=True)
+
+
 def test_elsa_fixture_bad_exit_status_bg(elsa):
     with pytest.raises(CommandFailed):
         with elsa.run_bg('not', 'a', 'chance'):
+            pass
+
+
+def test_elsa_fixture_bad_exit_status_bg_should_fail(elsa):
+    with elsa.run_bg('not', 'a', 'chance', should_fail=True):
+        pass
+
+
+def test_elsa_fixture_good_exit_status_should_fail(elsa):
+    with pytest.raises(CommandNotFailed):
+        elsa.run('freeze', should_fail=True)
+
+
+def test_elsa_fixture_good_exit_status_bg_should_fail(elsa):
+    with pytest.raises(CommandNotFailed):
+        with elsa.run_bg('serve', should_fail=True):
             pass
 
 
@@ -350,6 +381,31 @@ def test_remote_not_displayed_when_pushing(elsa, gitrepo, capsys):
     print('ERR', err)
     assert '/bare' not in out
     assert '/bare' not in err
+
+
+def test_remote_not_displayed_when_pushing_fails(elsa, gitrepo, capsys):
+    url = 'https://example.com'
+    run_cmd(['git', 'remote', 'set-url', 'origin', url])
+
+    capsys.readouterr()  # flush
+
+    elsa.run('deploy', '--push', should_fail=True)
+    out, err = capsys.readouterr()
+
+    print('OUT', out)
+    print('ERR', err)
+    assert url not in out
+    assert url not in err
+
+
+def test_traceback_not_displayed_when_pushing_fails(elsa, gitrepo, capsys):
+    run_cmd(['git', 'remote', 'set-url', 'origin', 'foo'])
+    elsa.run('deploy', '--push', should_fail=True)
+    out, err = capsys.readouterr()
+    print('OUT', out)
+    print('ERR', err)
+    assert 'Traceback' not in err
+    assert 'Error: git push failed (exit status 128)' in err
 
 
 def test_deploy_different_remote(elsa, push, gitrepo):
