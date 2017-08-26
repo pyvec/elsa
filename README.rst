@@ -4,10 +4,9 @@ elsa
 Elsa will help you build your `Frozen-Flask <http://pythonhosted.org/Frozen-Flask/>`_ based website and deploy it to GitHub pages.
 It's based on scripts from `PyLadies.cz repo <https://github.com/PyLadiesCZ/pyladies.cz>`_ and is distributed under the terms of the MIT license, see LICENSE (does not apply for the image below). It requires Python 3.
 
-.. figure:: http://cartoonbros.com/wp-content/uploads/2015/11/Elsa-21.jpg
+.. figure:: https://raw.githubusercontent.com/pyvec/elsa/master/logo/elsa.png
    :alt: Elsa
 
-   Image linked from `cartoonbros.com <http://cartoonbros.com/elsa/>`_, not stored in the repo, so the repo remains free.
 
 Basic usage
 -----------
