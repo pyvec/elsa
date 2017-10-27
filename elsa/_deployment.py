@@ -49,18 +49,29 @@ def deploy(html_dir, *, remote, push, show_err):
 
     print('Rewriting gh-pages branch...')
     run(['git', 'branch', '-D', 'gh-pages'], check=False, quiet=True)
+
     ref = '.git/refs/remotes/{}/gh-pages'.format(remote)
     ref = os.path.join(get_git_toplevel(), ref)
-    if os.path.exists(ref):
+    if push and os.path.exists(ref):
         os.remove(ref)
+
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
-    run([
-        'ghp-import',
-        '-n',  # .nojekyll file
-        '-m', commit_message,
-        '-r', remote,
-        html_dir
-    ])
+    try:
+        if not push and os.path.exists(ref):
+            # We don't want to remove remote tracking branch
+            # But we need to, so we backup it
+            os.rename(ref, ref + '.backup')
+
+        run([
+            'ghp-import',
+            '-n',  # .nojekyll file
+            '-m', commit_message,
+            '-r', remote,
+            html_dir
+        ])
+    finally:
+        if not push and os.path.exists(ref + '.backup'):
+            os.rename(ref + '.backup', ref)
 
     if push:
         print('Pushing to GitHub...')

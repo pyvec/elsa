@@ -352,6 +352,29 @@ def test_deploy_git(elsa, cname, push, gitrepo):
     assert is_true(push) == was_pushed()
 
 
+def test_deploy_nopush_does_not_remove_remote_tracking_branch(elsa, gitrepo):
+    run_cmd(['git', 'checkout', '--orphan', 'gh-pages'])
+    run_cmd(['git', 'rm', SCRIPT, '-f'])
+
+    run_cmd(['touch', 'testfile1'])
+    run_cmd(['git', 'add', 'testfile1'])
+    run_cmd(['git', 'commit', '-m', 'commit 1'])
+
+    run_cmd(['touch', 'testfile2'])
+    run_cmd(['git', 'add', 'testfile2'])
+    run_cmd(['git', 'commit', '-m', 'commit 2'])
+
+    run_cmd(['git', 'push', '-u', 'origin', 'gh-pages'])
+    run_cmd(['git', 'checkout', 'master'])
+
+    elsa.run('deploy', '--no-push')
+
+    run_cmd(['git', 'checkout', 'gh-pages'])
+    assert len(commits()) == 1
+    run_cmd(['git', 'reset', '--hard', 'origin/gh-pages'])
+    assert len(commits()) == 2
+
+
 def test_deploy_twice_only_one_commit(elsa, push, gitrepo):
     elsa.run('deploy', push)
     elsa.run('deploy', push)
