@@ -50,17 +50,20 @@ def deploy(html_dir, *, remote, push, show_err):
     print('Rewriting gh-pages branch...')
     run(['git', 'branch', '-D', 'gh-pages'], check=False, quiet=True)
 
-    ref = '.git/refs/remotes/{}/gh-pages'.format(remote)
-    ref = os.path.join(get_git_toplevel(), ref)
-    if push and os.path.exists(ref):
-        os.remove(ref)
+    ref = 'refs/remotes/{}/gh-pages'.format(remote)
+
+    # When not pushing, we don't want to remove remote tracking branch
+    # But we need to, so we remember where it points to and then restore it
+    result = run(['git', 'rev-parse', ref], check=False,
+                 stdout=subprocess.PIPE)
+    if result.returncode == 0:
+        old_remote_head = result.stdout.decode('ascii').strip()
+    else:
+        old_remote_head = None
 
     commit_message = 'Deploying {}'.format(random.choice(COMMIT_EMOJIS))
     try:
-        if not push and os.path.exists(ref):
-            # We don't want to remove remote tracking branch
-            # But we need to, so we backup it
-            os.rename(ref, ref + '.backup')
+        run(['git', 'update-ref', '-d', ref], quiet=True)
 
         run([
             'ghp-import',
@@ -70,8 +73,8 @@ def deploy(html_dir, *, remote, push, show_err):
             html_dir
         ])
     finally:
-        if not push and os.path.exists(ref + '.backup'):
-            os.rename(ref + '.backup', ref)
+        if not push and old_remote_head:
+            run(['git', 'update-ref', ref, old_remote_head], quiet=True)
 
     if push:
         print('Pushing to GitHub...')
