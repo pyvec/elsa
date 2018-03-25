@@ -78,13 +78,16 @@ class ElsaRunner:
         try:
             cr = subprocess.run(
                 self.create_command(command, script), check=not should_fail,
-                stderr=subprocess.PIPE
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
         except subprocess.CalledProcessError as e:
             raise CommandFailed('return code was {}'.format(e.returncode))
         if should_fail and cr.returncode == 0:
             raise CommandNotFailed('return code was 0')
+        cr.stdout = cr.stdout.decode('utf-8')
         cr.stderr = cr.stderr.decode('utf-8')
+        sys.stdout.write(cr.stdout)
         sys.stderr.write(cr.stderr)
         return cr
 
@@ -461,3 +464,13 @@ def test_deploy_different_remote(elsa, push, gitrepo):
     elsa.run('deploy', push, '--remote', 'foo')
     assert 'SUCCESS' in commit_info()
     assert is_true(push) == was_pushed(remote=remote)
+
+
+def test_invoke_cli(elsa):
+    elsa.run('freeze', script='custom_command.py')
+    with open(INDEX_FIXTURES) as f:
+        assert 'SUCCESS' in f.read()
+
+    result = elsa.run('custom_command', script='custom_command.py')
+
+    assert result.stdout.strip() == 'Custom command'
