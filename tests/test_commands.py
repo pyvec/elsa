@@ -51,6 +51,7 @@ def run_cmd(cmd, **kwargs):
     kwargs.setdefault('check', True)
     kwargs.setdefault('timeout', 15)
     kwargs.setdefault('stdout', subprocess.PIPE)
+    kwargs.setdefault('universal_newlines', True)
     print('SH:', *cmd)
     return subprocess.run(cmd, **kwargs)
 
@@ -80,13 +81,12 @@ class ElsaRunner:
                 self.create_command(command, script), check=not should_fail,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                universal_newlines=True,
             )
         except subprocess.CalledProcessError as e:
             raise CommandFailed('return code was {}'.format(e.returncode))
         if should_fail and cr.returncode == 0:
             raise CommandNotFailed('return code was 0')
-        cr.stdout = cr.stdout.decode('utf-8')
-        cr.stderr = cr.stderr.decode('utf-8')
         sys.stdout.write(cr.stdout)
         sys.stderr.write(cr.stderr)
         return cr
@@ -176,14 +176,14 @@ def elsa():
 
 def commit_info():
     cmd = ['git', '--no-pager', 'show', 'gh-pages', '--no-color']
-    commit = run_cmd(cmd).stdout.decode('utf-8').strip()
+    commit = run_cmd(cmd).stdout.strip()
     print(commit)
     return commit
 
 
 def commits():
     cmd = ['git', '--no-pager', 'log', '--pretty=format:%h %s', 'gh-pages']
-    commits = run_cmd(cmd).stdout.decode('utf-8').strip()
+    commits = run_cmd(cmd).stdout.strip()
     print(commits)
     return commits.splitlines()
 
@@ -194,14 +194,14 @@ def assert_commit_author(commit):
 
 def was_pushed(*, remote='origin', branch='gh-pages'):
     cmd = ['git', 'rev-parse', branch]
-    local = run_cmd(cmd).stdout.decode('utf-8').strip()
+    local = run_cmd(cmd).stdout.strip()
     cmd = ['git', 'rev-parse', '{}/{}'.format(remote, branch)]
     result = run_cmd(cmd, check=False)
     if result.returncode == 128:
         remote = None
     else:
         result.check_returncode()
-    remote = result.stdout.decode('utf-8').strip()
+    remote = result.stdout.strip()
     return remote == local
 
 
