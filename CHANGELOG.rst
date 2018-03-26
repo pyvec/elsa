@@ -1,13 +1,20 @@
 Changes
 =======
 
-0.1.4 (unreleased)
-------------------
+0.1.4
+-----
 
+* Add ``invoke_cli`` option for the ``cli`` function.
+  If set to ``False``, it only returns the cli for further extending. (`#45`_)
+* Don't remove the remote tracking branch when ``--no-push`` is used (fixes `#41`_)
+* Improve handling of ``FrozenFlaskWarning`` (`#37`_)
 * Add the ``--show-git-push-stderr`` option to make deploy more verbose,
   this can help debug problems, but is potentially dangerous, hence the output
-  of ``git push`` is hidden by default.
+  of ``git push`` is hidden by default. (`#37`_)
 
+.. _#37: https://github.com/pyvec/elsa/pull/37
+.. _#41: https://github.com/pyvec/elsa/issues/41
+.. _#45: https://github.com/pyvec/elsa/pull/45
 
 0.1.3
 -----
