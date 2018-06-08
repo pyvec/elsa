@@ -474,3 +474,9 @@ def test_invoke_cli(elsa):
     result = elsa.run('custom_command', script='custom_command.py')
 
     assert result.stdout.strip() == 'Custom command'
+
+
+def test_freeze_verbose(elsa, capsys):
+    elsa.run('freeze', '--verbose')
+    captured = capsys.readouterr()
+    assert 'Frozen /' in captured.err.splitlines()

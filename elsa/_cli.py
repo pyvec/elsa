@@ -29,7 +29,13 @@ def path_option(app):
         help='Input path, default _build')
 
 
-def freeze_app(app, freezer, path, base_url):
+def verbose_option():
+    return click.option(
+        '-v/-q', '--verbose/--quiet',
+        help='Print out page URLs as they are frozen')
+
+
+def freeze_app(app, freezer, path, base_url, verbose):
     if not base_url:
         raise click.UsageError('No base URL provided, use --base-url')
     print('Generating HTML...')
@@ -41,7 +47,9 @@ def freeze_app(app, freezer, path, base_url):
     warnings.filterwarnings('error', category=flask_frozen.FrozenFlaskWarning)
 
     try:
-        freezer.freeze()
+        for page in freezer.freeze_yield():
+            if verbose:
+                print('Frozen', page.url, file=sys.stderr)
     except flask_frozen.FrozenFlaskWarning as w:
         print('Error:', w, file=sys.stderr)
         sys.exit(1)
@@ -94,14 +102,15 @@ def cli(app, *, freezer=None, base_url=None, invoke_cli=True):
                   ('default {}'.format(base_url) if base_url else 'mandatory'))
     @click.option('--serve/--no-serve',
                   help='After building the site, run a server with it')
+    @verbose_option()
     @port_option()
     @cname_option()
-    def freeze(path, base_url, serve, port, cname):
+    def freeze(path, base_url, serve, port, cname, verbose):
         """Build a static site"""
         if cname:
             inject_cname(app)
 
-        freeze_app(app, freezer, path, base_url)
+        freeze_app(app, freezer, path, base_url, verbose=verbose)
 
         if serve:
             freezer.serve(port=port)
@@ -124,9 +133,10 @@ def cli(app, *, freezer=None, base_url=None, invoke_cli=True):
     @click.option('--show-git-push-stderr', is_flag=True,
                   help='Show the stderr output of `git push` failure, '
                        'might be dangerous if logs are public')
+    @verbose_option()
     @cname_option()
     def deploy(path, base_url, remote, push, freeze,
-               show_git_push_stderr, cname):
+               show_git_push_stderr, cname, verbose):
         """Deploy the site to GitHub pages"""
         if push is None:
             warnings.simplefilter('always')
@@ -140,7 +150,7 @@ def cli(app, *, freezer=None, base_url=None, invoke_cli=True):
         if freeze:
             if cname:
                 inject_cname(app)
-            freeze_app(app, freezer, path, base_url)
+            freeze_app(app, freezer, path, base_url, verbose=verbose)
 
         deploy_(path, remote=remote, push=push, show_err=show_git_push_stderr)
 
