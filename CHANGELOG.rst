@@ -1,6 +1,14 @@
 Changes
 =======
 
+0.1.5
+-----
+
+* Add ``--verbose`` option for the CLI. If used, it prints all frozen URLs
+  to standard error. Useful when freezing big projects on Travis CI. (`#51`_)
+
+.. _#51: https://github.com/pyvec/elsa/pull/51
+
 0.1.4
 -----
 
