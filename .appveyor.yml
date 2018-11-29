@@ -2,6 +2,7 @@ environment:
   matrix:
   - TOXENV: "py35"
   - TOXENV: "py36"
+  - TOXENV: "py37"
 
 install:
   - C:\Python35\python -m pip install tox
