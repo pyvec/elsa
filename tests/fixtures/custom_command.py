@@ -15,7 +15,7 @@ if __name__ == '__main__':
     elsa = cli(app, base_url='https://example.org', invoke_cli=False)
 
     @elsa.command()
-    def custom_command():
+    def custom():
         click.echo("Custom command")
 
     elsa()

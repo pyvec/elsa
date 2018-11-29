@@ -471,7 +471,7 @@ def test_invoke_cli(elsa):
     with open(INDEX_FIXTURES) as f:
         assert 'SUCCESS' in f.read()
 
-    result = elsa.run('custom_command', script='custom_command.py')
+    result = elsa.run('custom', script='custom_command.py')
 
     assert result.stdout.strip() == 'Custom command'
 
