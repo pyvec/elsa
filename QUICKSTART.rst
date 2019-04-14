@@ -76,12 +76,11 @@ Once you have your Flask-powered website, add elsa at the bottom of that file:
 
     if __name__ == '__main__':
         from elsa import cli
-        cli(app, base_url='http://example.com')
+        cli(app, base_url='https://example.com')
 
-Make sure to add your own base URL instead of ``http://example.com``.
-The base URL consists of ``http://`` and your domain name.
-(You can use ``https://`` with Elsa as well but it does not work with GitHub
-pages out of the box and is not covered by this tutorial.)
+Make sure to add your own base URL instead of ``https://example.com``.
+The base URL consists of ``https://`` and your domain name.
+(You can also use ``http://`` with Elsa, but we don't recommend that.)
 
 To test your new website, you'll need to install elsa. The best way is to use
 the Python virtual environment:
