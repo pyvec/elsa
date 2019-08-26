@@ -37,13 +37,19 @@ def get_git_toplevel():
 
 def deploy(html_dir, *, remote, push, show_err):
     """Deploy to GitHub pages, expects to be already frozen"""
-    if os.environ.get('TRAVIS'):  # Travis CI
+    if os.environ.get('CI'):
         print('Setting up git...')
         run(['git', 'config', 'user.name', get_last_commit_info('%cN')])
         run(['git', 'config', 'user.email', get_last_commit_info('%cE')])
+        
+        if os.environ.get('TRAVIS'):
+            repo_slug = os.environ.get('TRAVIS_REPO_SLUG')
+        elif os.environ.get('CIRCLECI'):
+            repo_slug = '{}/{}'.format(os.environ.get('CIRCLE_PROJECT_USERNAME'), os.environ.get('CIRCLE_PROJECT_REPONAME'))
+        else:
+            raise RuntimeError('Unsupported CI')
 
-        github_token = os.environ.get('GITHUB_TOKEN')  # from .travis.yml
-        repo_slug = os.environ.get('TRAVIS_REPO_SLUG')
+        github_token = os.environ.get('GITHUB_TOKEN')
         rurl = 'https://{}@github.com/{}.git'.format(github_token, repo_slug)
         run(['git', 'remote', 'set-url', remote, rurl])
 
