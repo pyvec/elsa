@@ -47,7 +47,7 @@ def deploy(html_dir, *, remote, push, show_err):
         elif os.environ.get('CIRCLECI'):
             repo_slug = '{}/{}'.format(os.environ.get('CIRCLE_PROJECT_USERNAME'), os.environ.get('CIRCLE_PROJECT_REPONAME'))
         else:
-            raise RuntimeError('Unsupported CI')
+            raise RuntimeError('Unsupported CI, open an issue at https://github.com/pyvec/elsa')
 
         github_token = os.environ.get('GITHUB_TOKEN')
         rurl = 'https://{}@github.com/{}.git'.format(github_token, repo_slug)
