@@ -84,11 +84,13 @@ class ElsaRunner:
                 universal_newlines=True,
             )
         except subprocess.CalledProcessError as e:
+            sys.stdout.write(e.stdout)
+            sys.stderr.write(e.stderr)
             raise CommandFailed('return code was {}'.format(e.returncode))
-        if should_fail and cr.returncode == 0:
-            raise CommandNotFailed('return code was 0')
         sys.stdout.write(cr.stdout)
         sys.stderr.write(cr.stderr)
+        if should_fail and cr.returncode == 0:
+            raise CommandNotFailed('return code was 0')
         return cr
 
     @contextmanager
