@@ -102,7 +102,7 @@ Now run your website on your own computer like this:
 .. code-block:: bash
 
     (__env__)$ python website.py serve
-     * Running on http://0.0.0.0:8003/ (Press CTRL+C to quit)
+     * Running on http://127.0.0.1:8003/ (Press CTRL+C to quit)
      * Restarting with stat
      * Debugger is active!
      * Debugger pin code: 237-729-566
