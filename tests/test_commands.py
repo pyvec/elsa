@@ -295,7 +295,7 @@ def test_host(elsa, host, serve_command):
         *serve_command, '--host', host, '--port', port,
         assert_running_on='http://{}:{}/'.format(host, port),
     ):
-        url = 'http://{}:{}/'.format(host, port)
+        url = 'http://localhost:{}/'.format(port)
         assert 'SUCCESS' in requests.get(url).text
 
 
