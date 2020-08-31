@@ -1,6 +1,18 @@
 Changes
 =======
 
+0.1.6
+-----
+
+* Add the ``--host`` option to CLI.
+  It corresponds to ``flask run``'s ``--host`` option.
+* When serving (with ``serve`` or ``freeze --serve``), Elsa now listens on
+  Flask's default address, ``127.0.0.1``. The server is not visible
+  externally.
+  Use ``--host=0.0.0.0`` to select the original, less secure behavior. (`#67`_)
+
+.. _#67: https://github.com/pyvec/elsa/pull/67
+
 0.1.5
 -----
 

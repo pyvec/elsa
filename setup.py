@@ -19,7 +19,7 @@ def long_description():
 
 setup(
     name='elsa',
-    version='0.1.5',
+    version='0.1.6',
     description='Helper module for Frozen-Flask based websites',
     long_description=long_description(),
     keywords='flask web github',
@@ -51,6 +51,8 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Internet :: WWW/HTTP',
     ]
 )
