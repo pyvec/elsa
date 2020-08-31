@@ -35,6 +35,12 @@ def verbose_option():
         help='Print out page URLs as they are frozen')
 
 
+def host_option():
+    return click.option(
+        '--host',
+        help='Host to listen at when serving')
+
+
 def freeze_app(app, freezer, path, base_url, verbose):
     if not base_url:
         raise click.UsageError('No base URL provided, use --base-url')
@@ -81,7 +87,8 @@ def cli(app, *, freezer=None, base_url=None, invoke_cli=True):
     @command.command()
     @port_option()
     @cname_option()
-    def serve(port, cname):
+    @host_option()
+    def serve(port, cname, host):
         """Run a debug server"""
 
         # Workaround for https://github.com/pallets/flask/issues/1907
@@ -93,7 +100,11 @@ def cli(app, *, freezer=None, base_url=None, invoke_cli=True):
         if cname:
             inject_cname(app)
 
-        app.run(host='0.0.0.0', port=port, debug=True)
+        kwargs = {}
+        if host is not None:
+            kwargs['host'] = host
+
+        app.run(port=port, debug=True, **kwargs)
 
     @command.command()
     @path_option(app)
@@ -105,15 +116,20 @@ def cli(app, *, freezer=None, base_url=None, invoke_cli=True):
     @verbose_option()
     @port_option()
     @cname_option()
-    def freeze(path, base_url, serve, port, cname, verbose):
+    @host_option()
+    def freeze(path, base_url, serve, port, cname, verbose, host):
         """Build a static site"""
         if cname:
             inject_cname(app)
 
         freeze_app(app, freezer, path, base_url, verbose=verbose)
 
+        kwargs = {}
+        if host is not None:
+            kwargs['host'] = host
+
         if serve:
-            freezer.serve(port=port)
+            freezer.serve(port=port, **kwargs)
 
     @command.command()
     @path_option(app)

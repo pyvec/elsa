@@ -3,6 +3,7 @@ python:
 - '3.5'
 - '3.6'
 - '3.7'
+- '3.8'
 - 'pypy3.5-5.9.0'
 - 'nightly'
 dist: xenial
@@ -11,9 +12,9 @@ matrix:
     - os: osx
       sudo: required
       language: generic
-      python: 3.7
+      python: 3.8
       env:
-      - TRAVIS_PYTHON_VERSION: 3.7
+      - TRAVIS_PYTHON_VERSION: 3.8
   allow_failures:
     - python: nightly
   fast_finish: true

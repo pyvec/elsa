@@ -42,6 +42,7 @@ push = parametrized_fixture(push='--push', no_push='--no-push')
 serve_command = parametrized_fixture(serve=['serve'],
                                      freeze_serve=['freeze', '--serve'])
 port = parametrized_fixture(8001, 8080)
+host = parametrized_fixture('localhost', '127.0.0.1', '0.0.0.0')
 domain = parametrized_fixture('foo.bar', 'spam.eggs')
 protocol = parametrized_fixture('http', 'https')
 
@@ -84,15 +85,18 @@ class ElsaRunner:
                 universal_newlines=True,
             )
         except subprocess.CalledProcessError as e:
+            sys.stdout.write(e.stdout)
+            sys.stderr.write(e.stderr)
             raise CommandFailed('return code was {}'.format(e.returncode))
-        if should_fail and cr.returncode == 0:
-            raise CommandNotFailed('return code was 0')
         sys.stdout.write(cr.stdout)
         sys.stderr.write(cr.stderr)
+        if should_fail and cr.returncode == 0:
+            raise CommandNotFailed('return code was 0')
         return cr
 
     @contextmanager
-    def run_bg(self, *command, script=None, should_fail=False):
+    def run_bg(self, *command, script=None, should_fail=False,
+               assert_running_on=None):
         print('COMMAND IN BACKGROUND: python website.py', *command)
         port = self.parse_port(command)
         proc = subprocess.Popen(self.create_command(command, script),
@@ -102,12 +106,32 @@ class ElsaRunner:
         # Wait for the server to start,
         # i.e. wait for the first line on stderr:
         #  * Running on http://127.0.0.1:8003/ (Press CTRL+C to quit)
-        sys.stderr.write(proc.stderr.readline())
-        # With the serve command, Flask is running in debug and restarts
-        # the server, so we'll also wait for next line:
-        #  * Restarting with stat
-        if command[0] == 'serve':
-            sys.stderr.write(proc.stderr.readline())
+        line = proc.stderr.readline()
+        sys.stderr.write(line)
+        if 'Traceback' in line:
+            # Get all of the traceback
+            _, errs = proc.communicate(timeout=1)
+            sys.stderr.write(errs)
+        else:
+            lines = [line.strip()]
+            # With the serve command, Flask is running in debug and restarts
+            # the server, so we'll also wait for next lines:
+            #  * Restarting with stat
+            #  * Debugger is active!
+            #  * Debugger PIN: ...
+            # (The stdout lines might come in either order, depending on OS.)
+            if command[0] == 'serve':
+                for i in range(3):
+                    line = proc.stderr.readline()
+                    sys.stderr.write(line)
+                    lines.append(line.strip())
+
+            # Here we test user-facing messages, which Flask is free to change.
+            # I see no better way to check that the --host option
+            # got through to the dev server.
+            if assert_running_on is not None:
+                msg = '* Running on {} (Press CTRL+C to quit)'
+                assert msg.format(assert_running_on) in lines
 
         yield proc
 
@@ -264,7 +288,21 @@ def test_serve(elsa):
 
 
 def test_port(elsa, port, serve_command):
-    with elsa.run_bg(*serve_command, '--port', port):
+    host = '127.0.0.1'
+    with elsa.run_bg(
+        *serve_command, '--port', port,
+        assert_running_on='http://{}:{}/'.format(host, port),
+    ):
+        url = 'http://localhost:{}/'.format(port)
+        assert 'SUCCESS' in requests.get(url).text
+
+
+def test_host(elsa, host, serve_command):
+    port = 8080
+    with elsa.run_bg(
+        *serve_command, '--host', host, '--port', port,
+        assert_running_on='http://{}:{}/'.format(host, port),
+    ):
         url = 'http://localhost:{}/'.format(port)
         assert 'SUCCESS' in requests.get(url).text
 
