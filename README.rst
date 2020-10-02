@@ -9,6 +9,9 @@ If you have a pull request, please request a pull the old-fashioned way:
 send the URL of your fork, and the branch name, to `encukou@gmail.com`_.
 I'll merge manually or open a PR on your behalf.
 
+If you found an issue, or want to do anything else we're disallowing this month,
+please e-mail the same address.
+
 .. _spam pull requests: https://github.com/pyvec/elsa/pulls?q=is%3Apr+is%3Aclosed
 .. _Hacktoberfest: https://hacktoberfest.digitalocean.com/
 .. _encukou@gmail.com: mailto:encukou@gmail.com
