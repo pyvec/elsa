@@ -1,3 +1,22 @@
+\ :mushroom: Hacktoberfest limits :mushroom:
+============================================
+
+This repository is attracting many `spam pull requests`_ during `Hacktoberfest`_ 2020.
+
+Due to the overwhelming number of PRs, we have limited interaction with this
+repository to existing contributors.
+If you have a pull request, please request a pull the old-fashioned way:
+send the URL of your fork, and the branch name, to `encukou@gmail.com`_.
+I'll merge manually or open a PR on your behalf.
+
+.. _spam pull requests: https://github.com/pyvec/elsa/pulls?q=is%3Apr+is%3Aclosed
+.. _Hacktoberfest: https://hacktoberfest.digitalocean.com/
+.. _encukou@gmail.com: mailto:encukou@gmail.com
+
+(And if we forget to take the message down at the end of the month,
+please let us know as well!)
+
+
 elsa
 ====
 
